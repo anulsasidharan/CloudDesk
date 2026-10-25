@@ -2,14 +2,16 @@
 
 Base URL: `http://localhost:8000` (env `NEXT_PUBLIC_API_URL`). All routes below are prefixed with `/api/v1`
 except the health routes. All non-auth routes require `Authorization: Bearer <jwt>`.
-Every response carries `X-Request-ID`. Errors: `{ "detail": string }` with proper HTTP status.
+Every response carries `X-Request-ID`. A caller-supplied value is echoed when it is 1–128 characters
+from `A-Za-z0-9._:-`; any other value is replaced with a UUID. CORS exposes `X-Request-ID`.
+Errors: `{ "detail": string }` with proper HTTP status.
 
 ## Health (no prefix, no auth)
 | Method | Path | Response |
 |---|---|---|
-| GET | `/health` | `{status:"ok", service, version, environment}` |
-| GET | `/health/live` | `{status:"alive"}` |
-| GET | `/health/ready` | `{status:"ready"|"degraded", checks:{database, redis, vector_store, llm}}` each `{status:"ok"|"error", detail?}` |
+| GET | `/health` | 200 `{status:"ok", service, version, environment}` |
+| GET | `/health/live` | 200 `{status:"alive"}`. No dependency I/O. |
+| GET | `/health/ready` | 200 `{status:"ready", checks:{database, redis, vector_store, llm}}` when every check is `ok`. 503 `{status:"degraded", checks:...}` otherwise. Each check is `{status:"ok"|"error", detail?}`. Details never include URLs, passwords, or API keys. |
 
 ## Auth
 | Method | Path | Body | Response |
