@@ -91,7 +91,7 @@ Read these before the first feature branch. CLAUDE.md wins if another file disag
 | MEMORY.md | Locked decisions and honest status. Update it when status changes. |
 | docs/ARCHITECTURE.md | Component and infrastructure diagrams. |
 | .cursor/skills/clouddesk-support/SKILL.md | How to implement a change in this repo. |
-| docs/API\_CONTRACT.md | Route and payload shapes. Create it with the first API change. It does not exist yet. |
+| docs/API\_CONTRACT.md | Route and payload shapes. Keep it aligned with schemas and frontend/lib/types.ts when a route changes. |
 
 # 3. First-time setup
 

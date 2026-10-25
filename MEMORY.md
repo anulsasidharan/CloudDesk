@@ -125,9 +125,9 @@ Cases live in `datasets/eval_cases.json` and each case needs a valid `expected_c
 
 Update each row in place. Do not mark a row done from intention.
 
-| Surface | State on 2026-10-23 |
+| Surface | State on 2026-10-25 |
 |---|---|
-| Repository contents | Requirement files are in place (`CLAUDE.md`, `MEMORY.md`, `PLAN.md`, `PLAN_PHASE.md`, `.cursor/skills/clouddesk-support/SKILL.md`). Application code, tests, sample data, and `docs/API_CONTRACT.md` are absent. |
+| Repository contents | Requirement files are in place (`CLAUDE.md`, `MEMORY.md`, `PLAN.md`, `PLAN_PHASE.md`, `TASKS.md`, `docs/ARCHITECTURE.md`, `docs/API_CONTRACT.md`, `docs/Git_GitHub_Workflow_Guide.md`, `.cursor/skills/clouddesk-support/SKILL.md`). Application code, tests, and sample data are absent. Routes in the contract are specified and not implemented. |
 | Implemented | Nothing. |
 | Validated locally | Nothing. `make test` and `make demo` do not exist yet. |
 | Cloud credentials | None used. |
