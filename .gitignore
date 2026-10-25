@@ -8,3 +8,20 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Local secrets. .env.example stays committable.
+.env
+.env.*
+!.env.example
+
+# Runtime databases. Settings default to ./data/*.db.
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
