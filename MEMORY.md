@@ -23,6 +23,7 @@ Durable facts for this repository. `CLAUDE.md` wins if this file drifts. Update 
 - Background workflows run in-process for v1.
 - Image tags equal the git SHA once delivery exists. Nothing has been built or tagged yet.
 - Stage 17 (Agentic DevOps) is optional and depends on stages 13–16. It is outside core Project 1 completion.
+- 2026-10-25 — F14 / observability: process settings are `get_settings()` in `backend/app/core/config.py` (cached). JSON logs come from `setup_logging()` and `log_context()` in `backend/app/core/logging.py`. Every line includes `request_id` and `workflow_id` (`null` when unset). `model_dump()` redacts secrets and URL passwords; connection code reads the attributes.
 
 ## Roles
 
@@ -127,13 +128,13 @@ Update each row in place. Do not mark a row done from intention.
 
 | Surface | State on 2026-10-25 |
 |---|---|
-| Repository contents | Requirement files are in place (`CLAUDE.md`, `MEMORY.md`, `PLAN.md`, `PLAN_PHASE.md`, `TASKS.md`, `docs/ARCHITECTURE.md`, `docs/API_CONTRACT.md`, `docs/Git_GitHub_Workflow_Guide.md`, `.cursor/skills/clouddesk-support/SKILL.md`). Application code, tests, and sample data are absent. Routes in the contract are specified and not implemented. |
-| Implemented | Nothing. |
-| Validated locally | Nothing. `make test` and `make demo` do not exist yet. |
+| Repository contents | Requirement files are in place. P1-1 adds `backend/app/core/config.py`, `backend/app/core/logging.py`, and `tests/unit/test_config_logging.py`. Routes in the contract are specified and not implemented. Sample data, health routes, and the rest of the backend are absent. |
+| Implemented | P1-1, not merged: cached `get_settings()` for `CLAUDE.md` §10.1, `effective_jwt_secret`, and JSON logging (`setup_logging`, `log_context`) with `request_id` and `workflow_id` on every line. Health routes, request-id middleware, the pytest harness, Makefile, and `.env.example` are still absent. |
+| Validated locally | `tests/unit/test_config_logging.py`: 14 passed on this machine. `make test` and `make demo` do not exist yet. This is not a Phase 1 exit. |
 | Cloud credentials | None used. |
 | Applied to a real account | Nothing. |
 | GitHub Actions | Workflow files are not in the repo. None have been executed. |
-| Phase plan | Specified in `PLAN_PHASE.md`. All 13 phases are not started. |
+| Phase plan | Phase 1 is in progress (P1-1 only). Phases 2–13 are not started. |
 
 ## Open questions from `CLAUDE.md` §20
 
