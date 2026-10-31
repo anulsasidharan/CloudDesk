@@ -25,3 +25,13 @@ data/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+
+# Claude Code: track shared config only
+/.claude/*
+!/.claude/settings.json
+!/.claude/agents/
+!/.claude/skills/
+!/.claude/rules/
+!/.claude/hooks/
+.claude/settings.local.json
+.claude/transcripts/
