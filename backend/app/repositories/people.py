@@ -23,6 +23,10 @@ class ProfileRepository(BaseRepository[Profile]):
         stmt = select(Profile).where(Profile.email == email.strip().lower())
         return (await self.session.execute(stmt)).scalar_one_or_none()
 
+    async def first_with_role(self, role: str) -> Profile | None:
+        stmt = select(Profile).where(Profile.role == role).order_by(Profile.email).limit(1)
+        return (await self.session.execute(stmt)).scalar_one_or_none()
+
 
 class CustomerRepository(BaseRepository[Customer]):
     model = Customer
