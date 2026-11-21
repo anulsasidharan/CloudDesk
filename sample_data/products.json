@@ -1,0 +1,8 @@
+[
+  {"sku": "plan-free", "name": "CloudDesk Free", "description": "3 seats, 15 GB storage, 60 API requests per minute.", "kind": "plan", "monthly_price": 0},
+  {"sku": "plan-pro", "name": "CloudDesk Pro", "description": "Per-seat plan with 1 TB pooled storage and 300 API requests per minute.", "kind": "plan", "monthly_price": 9},
+  {"sku": "plan-business", "name": "CloudDesk Business", "description": "Per-seat plan with 5 TB pooled storage, external sharing controls and 1200 API requests per minute.", "kind": "plan", "monthly_price": 15},
+  {"sku": "plan-enterprise", "name": "CloudDesk Enterprise", "description": "SSO, audit export, dedicated support and 3000 API requests per minute.", "kind": "plan", "monthly_price": 28},
+  {"sku": "addon-storage-1tb", "name": "Extra storage 1 TB", "description": "Adds 1 TB of pooled storage to any paid plan.", "kind": "addon", "monthly_price": 20},
+  {"sku": "addon-api-boost", "name": "API boost", "description": "Doubles the per-minute API rate limit.", "kind": "addon", "monthly_price": 30}
+]
