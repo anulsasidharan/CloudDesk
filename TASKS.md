@@ -88,10 +88,10 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P6-1 · Tool registry and policy | `feature/tool-registry-policy` | Pending ❌ |
-| P6-2 · Read-only support tools | `feature/tools-read-only` | Pending ❌ |
-| P6-3 · Approval-gated write tools | `feature/tools-approval-gated` | Pending ❌ |
-| P6-4 · Mock integrations | `feature/integrations-mock` | Pending ❌ |
+| P6-1 · Tool registry and policy | `feature/tool-registry-policy` | Completed ✅ |
+| P6-2 · Read-only support tools | `feature/tools-read-only` | Completed ✅ |
+| P6-3 · Approval-gated write tools | `feature/tools-approval-gated` | Completed ✅ |
+| P6-4 · Mock integrations | `feature/integrations-mock` | Completed ✅ |
 
 ---
 
