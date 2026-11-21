@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 
 from app.models.entities import Ticket, TicketMessage
 from app.repositories.base import BaseRepository
@@ -48,6 +48,42 @@ class TicketRepository(BaseRepository[Ticket]):
             if value:
                 stmt = stmt.where(column == value)
         return list((await self.session.execute(stmt)).scalars())
+
+    async def page(
+        self,
+        *,
+        status: str | None = None,
+        severity: str | None = None,
+        search: str | None = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> tuple[list[Ticket], int]:
+        """One page of tickets (newest first) plus the total that matches the filters."""
+        conditions = []
+        if status:
+            conditions.append(Ticket.status == status)
+        if severity:
+            conditions.append(Ticket.severity == severity)
+        if search and search.strip():
+            like = f"%{search.strip().lower()}%"
+            conditions.append(
+                or_(
+                    func.lower(Ticket.subject).like(like),
+                    func.lower(Ticket.body).like(like),
+                    func.lower(Ticket.number).like(like),
+                )
+            )
+        total = (
+            await self.session.execute(select(func.count()).select_from(Ticket).where(*conditions))
+        ).scalar_one()
+        stmt = (
+            select(Ticket)
+            .where(*conditions)
+            .order_by(Ticket.created_at.desc(), Ticket.number.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        return list((await self.session.execute(stmt)).scalars()), int(total)
 
     async def history_for_customer(
         self, customer_id: str, *, exclude_ticket_id: str | None = None, limit: int = 10

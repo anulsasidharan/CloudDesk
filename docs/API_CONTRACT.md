@@ -27,16 +27,16 @@ Errors: `{ "detail": string }` with proper HTTP status.
 ## Tickets
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/tickets?status=&severity=&search=&page=1&page_size=20` | `{ items: TicketSummary[], total, page, page_size }` |
-| POST | `/tickets` | body `{ customer_id, subject, body, channel?: "email"|"chat"|"web"|"api" }` → `Ticket` (also creates first `ticket_messages` row; does **not** start the workflow) |
-| GET | `/tickets/{id}` | `TicketDetail` |
+| GET | `/tickets?status=&severity=&search=&page=1&page_size=20` | `{ items: TicketSummary[], total, page, page_size }`. Newest first. `search` matches subject, body or number (case-insensitive). `page>=1`, `1<=page_size<=100`; an unknown `status` or `severity` is **422**. *(Implemented, Phase 4)* |
+| POST | `/tickets` | body `{ customer_id, subject, body, channel?: "email"|"chat"|"web"|"api" }` (default `web`; blank subject/body → 422) → **201** `Ticket` with status `new`, no category/severity (the workflow sets those). Also creates the first `ticket_messages` row (role `customer`); does **not** start the workflow. **404** `Customer not found`. *(Implemented, Phase 4)* |
+| GET | `/tickets/{id}` | `TicketDetail`. `{id}` is the UUID **or** the ticket number (`CD-1001`). **404** `Ticket not found`. `workflow` is `null` until Phase 10. *(Implemented, Phase 4)* |
 | POST | `/tickets/{id}/run` | starts the LangGraph workflow (background task). **202** `{ workflow_id, status:"running" }`. **409** when the ticket is already `waiting_on_approval` |
 | GET | `/tickets/{id}/workflow` | `WorkflowState` (latest run) |
-| GET | `/tickets/{id}/events` | `WorkflowEvent[]` (node transitions, tool calls, timings) |
-| POST | `/tickets/{id}/reply` | body `{ body: string, internal?: boolean }` → `TicketMessage` (sends the final/edited reply; role `agent`) |
-| POST | `/tickets/{id}/request-info` | body `{ questions: string[] }` → `TicketMessage` and ticket status `waiting_on_customer` |
-| POST | `/tickets/{id}/escalate` | body `{ reason, priority?: "normal"|"urgent" }` → `Escalation` |
-| PATCH | `/tickets/{id}` | body `{ status?, severity?, assigned_to? }` → `Ticket` |
+| GET | `/tickets/{id}/events` | `WorkflowEvent[]` (node transitions, tool calls, timings); `[]` until a workflow has run. *(Implemented, Phase 4)* |
+| POST | `/tickets/{id}/reply` | body `{ body: string, internal?: boolean }` → **201** `TicketMessage` (role `agent`, author = caller's name). A public reply moves a `new` ticket to `in_progress`. **409** for a public reply on a `closed` ticket (internal notes still allowed). *(Implemented, Phase 4. Output validation, N5, joins in Phase 7.)* |
+| POST | `/tickets/{id}/request-info` | body `{ questions: string[] }` (1-10, blanks dropped) → **201** `TicketMessage` (numbered list) and ticket status `waiting_on_customer`. **409** when closed. *(Implemented, Phase 4)* |
+| POST | `/tickets/{id}/escalate` | body `{ reason, priority?: "normal"|"urgent" }` → **201** `Escalation` (team `support_leads`; severity `high`, or `critical` when urgent). Ticket status becomes `escalated`. *(Implemented, Phase 4 as a manual escalation; the AI path is Phase 11.)* |
+| PATCH | `/tickets/{id}` | body `{ status?, severity?, assigned_to? }` → `Ticket`. Only sent fields change; `assigned_to: null` un-assigns. Empty body → 422; unknown assignee → 404. Moving to `resolved`/`closed` stamps `resolved_at`. *(Implemented, Phase 4)* |
 
 Mutating ticket routes (`POST /tickets`, `/run`, `/reply`, `/request-info`, `/escalate`, and `PATCH`) require role `agent` or `admin`. A `viewer` receives **403**.
 
@@ -46,10 +46,14 @@ type TicketStatus = "new"|"in_progress"|"waiting_on_customer"|"waiting_on_approv
 type Severity = "low"|"medium"|"high"|"critical";
 type Category = "login_issue"|"billing"|"api_failure"|"workspace_permissions"|"storage_quota"|"integration"|"feature_request"|"account"|"security"|"other";
 
+`/run` and `/workflow` are specified here and built in Phase 10. Until then they are not mounted (404).
+
 TicketSummary = { id, ticket_number, subject, status, severity, category, customer_id, customer_name, channel, created_at, updated_at, escalation_required:boolean, approval_status: "not_required"|"pending"|"approved"|"rejected" }
 Ticket = TicketSummary & { body, assigned_to?, resolved_at?, tags: string[] }
-TicketMessage = { id, ticket_id, role: "customer"|"agent"|"system"|"ai", author_name, body, internal:boolean, attachments: {name,url,size}[], created_at }
-TicketDetail = Ticket & { messages: TicketMessage[], customer: Customer, subscription: Subscription|null, history: TicketSummary[], workflow: WorkflowState|null, resolution_actions: ResolutionAction[], escalation: Escalation|null }
+TicketMessage = { id, ticket_id, role: "customer"|"agent"|"system", author_name, body, internal:boolean, attachments: {name,url,size}[] /* always [] in v1 */, created_at }
+TicketDetail = Ticket & { messages: TicketMessage[], customer: Customer, subscription: Subscription|null, workspaces: Workspace[], history: TicketSummary[] /* customer's other tickets, max 10 */, workflow: WorkflowState|null, resolution_actions: ResolutionAction[], escalation: Escalation|null /* latest */ }
+
+`escalation_required` is true when an escalation row exists or the status is `escalated`. `approval_status` is the latest approval request's status, else `not_required`. `tags` is always `[]` in v1.
 ```
 
 ## Workflow state (what the right-hand panel renders)
@@ -95,14 +99,16 @@ WorkflowEvent = { id, workflow_id, ticket_id, event_type: "node_started"|"node_c
 ## Customers
 | Method | Path |
 |---|---|
-| GET | `/customers?search=&page=&page_size=` → `{items: Customer[], total, page, page_size}` |
-| GET | `/customers/{id}` → `CustomerDetail = Customer & { subscription, workspace, tickets: TicketSummary[], memory: CustomerMemory[] }` |
+| GET | `/customers?search=&page=1&page_size=20` → `{items: Customer[], total, page, page_size}`. Sorted by name; `search` matches name, company or email. Same paging limits as tickets. *(Implemented, Phase 4)* |
+| GET | `/customers/{id}` → `CustomerDetail = Customer & { subscription, workspaces: Workspace[], tickets: TicketSummary[] /* max 50, newest first */, memory: CustomerMemory[] /* max 10 */ }`. **404** `Customer not found`. *(Implemented, Phase 4)* |
+
+Customer routes and the read ticket routes need role `viewer` or higher; there is no customer write API in v1.
 
 ```ts
-Customer = { id, name, email, company, plan_name, status: "active"|"trial"|"past_due"|"churned", created_at, region, lifetime_value }
-Subscription = { id, customer_id, plan: "free"|"pro"|"business"|"enterprise", seats, status, renews_at, mrr, storage_quota_gb, storage_used_gb, api_rate_limit }
-Workspace = { id, customer_id, name, member_count, storage_used_gb, integrations: string[], sso_enabled: boolean }
-CustomerMemory = { id, customer_id, memory_type: "preference"|"past_issue"|"troubleshooting"|"note", content, source_ticket_id?, created_at }
+Customer = { id, name, email, company, plan: "free"|"pro"|"business"|"enterprise", status, timezone, created_at }
+Subscription = { id, customer_id, plan, status, billing_cycle, seats_purchased, seats_used, seat_price, currency, storage_limit_gb, storage_used_gb, api_rate_limit_per_minute, renews_at? }
+Workspace = { id, customer_id, name, slug, region, member_count, storage_used_gb, sso_enabled, mfa_required, external_sharing }
+CustomerMemory = { id, customer_id, kind: "preference"|"past_issue"|"troubleshooting"|"note", content, source_ticket_id?, created_at }
 ```
 
 ## Knowledge base
@@ -121,7 +127,7 @@ CustomerMemory = { id, customer_id, memory_type: "preference"|"past_issue"|"trou
 | GET | `/escalations?status=` → `Escalation[]` |
 | PATCH | `/escalations/{id}` body `{ status: "open"|"acknowledged"|"resolved", note? }` |
 
-`Escalation = { id, ticket_id, ticket_number, reason, priority, status, created_by: "ai"|"human", assigned_team, created_at, resolved_at? }`
+`Escalation = { id, ticket_id, team, reason, severity, status: "open"|"acknowledged"|"closed", created_at }`
 
 ## Agents (observability page)
 `GET /agents` → `{ agents: AgentInfo[], graph: { nodes: {id,label}[], edges: {source,target,label?}[] }, recent_runs: WorkflowState[], stats: { runs_total, runs_completed, runs_failed, avg_duration_ms, total_tokens, total_estimated_cost_usd } }`
@@ -134,3 +140,7 @@ CustomerMemory = { id, customer_id, memory_type: "preference"|"past_issue"|"trou
 ## Settings
 `GET /settings` → `{ demo_mode, environment, llm: {llm_provider, llm_model, embedding_provider, embedding_model, api_key_configured, tracing}, vector_store, redis: "real"|"fake", database: "sqlite"|"postgres", approval_policy: { refunds_require_approval, max_refund_without_approval, approval_required_tools: string[] } }`
 `GET /mcp/tools` → `{ tools: {name, description, requires_approval}[] }` (MCP server introspection, optional)
+
+
+## Contract changes in Phase 4
+The Customer, Subscription, Workspace, CustomerMemory, Escalation and TicketMessage shapes now match the database model (`backend/app/models/entities.py`) instead of the first draft: `plan_name`, `region`, `lifetime_value`, `mrr` on Customer/Subscription, `priority`/`assigned_team`/`created_by` on Escalation and the `ai` message role were dropped or renamed. `CustomerDetail` and `TicketDetail` return `workspaces` (a list) because a customer can own several. Response models live in `backend/app/schemas/{records,tickets,customers}.py`; `frontend/lib/types.ts` will copy them in Phase 12.

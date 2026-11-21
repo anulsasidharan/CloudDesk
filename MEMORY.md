@@ -140,7 +140,8 @@ Update each row in place. Do not mark a row done from intention.
 | Cloud credentials | None used. |
 | Applied to a real account | Nothing. |
 | GitHub Actions | Workflow files are not in the repo. None have been executed. |
-| Phase plan | Phases 1 and 2 validated locally. Phases 3-13 not started. `CLAUDE.md` section 19 still says Phase 1 in progress and Phase 2 not started; update it between sessions. |
+| Phase 4 (2026-11-21) | Implemented: `GET/POST /tickets`, `GET/PATCH /tickets/{id}` (id or `CD-####`), `/events`, `/reply`, `/request-info`, `/escalate`, `GET /customers`, `GET /customers/{id}`; services `ticket_service`/`customer_service`; schemas `records`/`tickets`/`customers`; 36 new API tests; full suite 127 passed, ruff clean. Contract reshaped to match the DB model. Not built yet: `/run`, `/workflow` (Phase 10), approvals, knowledge, dashboard, agents, audit, settings routes. Branch `feat/Support_API`, uncommitted. |
+| Phase plan (older note) | Phases 1 and 2 validated locally. Phases 3-13 not started. `CLAUDE.md` section 19 still says Phase 1 in progress and Phase 2 not started; update it between sessions. |
 
 ## Open questions from `CLAUDE.md` §20
 

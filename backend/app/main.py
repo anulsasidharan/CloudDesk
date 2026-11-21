@@ -12,7 +12,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import distribution_version
 from app.api.auth import router as auth_router
+from app.api.customers import router as customers_router
 from app.api.health import router as health_router
+from app.api.tickets import router as tickets_router
 from app.core.config import get_settings
 from app.core.database import create_tables, dispose_engine
 from app.core.logging import setup_logging
@@ -56,6 +58,8 @@ def create_app() -> FastAPI:
     )
     app.include_router(health_router)
     app.include_router(auth_router, prefix="/api/v1")
+    app.include_router(tickets_router, prefix="/api/v1")
+    app.include_router(customers_router, prefix="/api/v1")
     return app
 
 
