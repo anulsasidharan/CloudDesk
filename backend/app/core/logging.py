@@ -10,9 +10,8 @@ import json
 import logging
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TextIO
-
 
 request_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "request_id",
@@ -51,7 +50,7 @@ class JsonFormatter(logging.Formatter):
         if workflow_id is None:
             workflow_id = workflow_id_var.get()
         payload: dict[str, object] = {
-            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
+            "timestamp": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),

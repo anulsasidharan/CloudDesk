@@ -5,10 +5,9 @@ import json
 import logging
 
 import pytest
-from pydantic import ValidationError
-
 from app.core.config import Settings, get_settings
 from app.core.logging import JsonFormatter, log_context, setup_logging
+from pydantic import ValidationError
 
 _ENV_KEYS = (
     "DEMO_MODE",
@@ -134,7 +133,8 @@ def test_effective_jwt_secret_prefers_supabase_secret():
     assert both.effective_jwt_secret == "supabase-secret"
 
 
-def test_uses_fake_redis_when_forced_or_url_missing():
+def test_uses_fake_redis_when_forced_or_url_missing(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("USE_FAKE_REDIS", raising=False)
     assert _isolated_settings(redis_url="redis://redis:6379/0").uses_fake_redis is False
     forced = _isolated_settings(redis_url="redis://redis:6379/0", use_fake_redis=True)
     assert forced.uses_fake_redis is True
