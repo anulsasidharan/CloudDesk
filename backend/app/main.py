@@ -1,8 +1,7 @@
 """CloudDesk ASGI app.
 
 Boot with ``PYTHONPATH=backend`` and ``uvicorn app.main:app``. Middleware is
-added innermost first. Rate limiting and audit join this stack in Phase 3,
-between the request id and the router.
+added innermost first. Request path: CORS, request id, rate limit, audit, router.
 """
 
 from collections.abc import AsyncIterator
@@ -12,10 +11,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import distribution_version
+from app.api.auth import router as auth_router
 from app.api.health import router as health_router
 from app.core.config import get_settings
 from app.core.database import create_tables, dispose_engine
 from app.core.logging import setup_logging
+from app.core.redis import close_redis
+from app.middleware.audit import AuditMiddleware
+from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.request_id import REQUEST_ID_HEADER, RequestIdMiddleware
 from app.services.seed_service import bootstrap_demo_data
 
@@ -30,6 +33,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         yield
     finally:
         await dispose_engine()
+        await close_redis()
 
 
 def create_app() -> FastAPI:
@@ -37,7 +41,10 @@ def create_app() -> FastAPI:
     setup_logging()
     settings = get_settings()
     app = FastAPI(title="CloudDesk Support", version=distribution_version(), lifespan=lifespan)
-    # Outermost last: CORS -> RequestId -> (RateLimit -> Audit in Phase 3).
+    # add_middleware wraps: the LAST one added is outermost.
+    # Request path: CORS -> RequestId -> RateLimit -> Audit -> router.
+    app.add_middleware(AuditMiddleware)
+    app.add_middleware(RateLimitMiddleware)
     app.add_middleware(RequestIdMiddleware)
     app.add_middleware(
         CORSMiddleware,
@@ -48,6 +55,7 @@ def create_app() -> FastAPI:
         expose_headers=[REQUEST_ID_HEADER],
     )
     app.include_router(health_router)
+    app.include_router(auth_router, prefix="/api/v1")
     return app
 
 

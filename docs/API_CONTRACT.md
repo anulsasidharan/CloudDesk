@@ -16,7 +16,7 @@ Errors: `{ "detail": string }` with proper HTTP status.
 ## Auth
 | Method | Path | Body | Response |
 |---|---|---|---|
-| POST | `/auth/demo-login` | `{email?: string, role?: "admin"|"agent"|"viewer"}` | `{access_token, token_type:"bearer", user: User}` (only when `DEMO_MODE=true`) |
+| POST | `/auth/demo-login` | `{email?: string, role?: "admin"|"agent"|"viewer"}` | `{access_token, token_type:"bearer", expires_in: 28800, user: User}` (only when `DEMO_MODE=true`; 404 otherwise; email wins over role; neither → demo agent; unknown email → 404) |
 | GET | `/auth/me` | – | `User` |
 
 `User = { id, email, full_name, role, avatar_url? }`
