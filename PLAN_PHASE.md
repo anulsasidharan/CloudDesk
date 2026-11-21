@@ -10,7 +10,7 @@ Status values: `not started`, `in progress`, `implemented`, `validated locally`.
 | 2 | Persistence and demo data | validated locally |
 | 3 | Identity and request guards | not started |
 | 4 | Support API | not started |
-| 5 | Knowledge pipeline | not started |
+| 5 | Knowledge pipeline | complete (validated locally) |
 | 6 | Tools and policy | not started |
 | 7 | Rules and guardrails | not started |
 | 8 | Specialist agents | not started |

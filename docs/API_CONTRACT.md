@@ -114,10 +114,12 @@ CustomerMemory = { id, customer_id, kind: "preference"|"past_issue"|"troubleshoo
 ## Knowledge base
 | Method | Path |
 |---|---|
-| GET | `/knowledge/articles?search=&category=` → `Article[]` |
-| GET | `/knowledge/articles/{id}` → `Article & { content }` |
-| POST | `/knowledge/search` body `{ query, top_k?: 5, mode?: "hybrid"|"semantic"|"keyword" }` → `{ results: Evidence[], mode, took_ms }` |
-| POST | `/knowledge/reindex` (admin) → `{ indexed: number }` |
+| GET | `/knowledge/articles?search=&category=` → `Article[]` (title-sorted; `search` matches title, slug or summary; unknown `category` is **422**). Viewer+. *(Implemented, Phase 5)* |
+| GET | `/knowledge/articles/{id}` → `Article & { content }`. `{id}` is the UUID **or** the slug. **404** `Article not found`. Viewer+. *(Implemented, Phase 5)* |
+| POST | `/knowledge/search` body `{ query (1-500 chars), top_k?: 5 (1-20), mode?: "hybrid"|"semantic"|"keyword", category?: Category }` → `{ results: Evidence[], mode, took_ms }`. One result per article, best first. `category` is a hard filter. Viewer+. *(Implemented, Phase 5)* |
+| POST | `/knowledge/reindex` (admin only; agent/viewer **403**) → `{ indexed: number /* chunks */, articles: number }`. Recreates the collection from `support_articles`. *(Implemented, Phase 5)* |
+
+`Evidence = { id /* chunk id */, title, source /* kb://slug#section */, snippet, score, url /* /knowledge/<article id> */, article_id }`. `score` is a fused rank score for ordering, not a probability.
 
 `Article = { id, slug, title, category, tags: string[], summary, updated_at }`
 
