@@ -63,6 +63,14 @@ class WorkflowEventRepository(BaseRepository[WorkflowEvent]):
 class ResolutionActionRepository(BaseRepository[ResolutionAction]):
     model = ResolutionAction
 
+    async def list_for_ticket(self, ticket_id: str) -> list[ResolutionAction]:
+        stmt = (
+            select(ResolutionAction)
+            .where(ResolutionAction.ticket_id == ticket_id)
+            .order_by(ResolutionAction.created_at, ResolutionAction.id)
+        )
+        return list((await self.session.execute(stmt)).scalars())
+
     async def list_for_workflow(self, workflow_id: str) -> list[ResolutionAction]:
         stmt = (
             select(ResolutionAction)
@@ -74,6 +82,17 @@ class ResolutionActionRepository(BaseRepository[ResolutionAction]):
 
 class ApprovalRepository(BaseRepository[ApprovalRequest]):
     model = ApprovalRequest
+
+    async def latest_status_by_ticket(self, ticket_ids: list[str]) -> dict[str, str]:
+        """Most recent approval status per ticket; tickets with no approval are absent."""
+        if not ticket_ids:
+            return {}
+        stmt = (
+            select(ApprovalRequest.ticket_id, ApprovalRequest.status)
+            .where(ApprovalRequest.ticket_id.in_(ticket_ids))
+            .order_by(ApprovalRequest.created_at, ApprovalRequest.id)
+        )
+        return {ticket_id: status for ticket_id, status in (await self.session.execute(stmt)).all()}
 
     async def pending(self) -> list[ApprovalRequest]:
         stmt = (
@@ -108,6 +127,12 @@ class ApprovalRepository(BaseRepository[ApprovalRequest]):
 
 class EscalationRepository(BaseRepository[Escalation]):
     model = Escalation
+
+    async def ticket_ids_with_escalation(self, ticket_ids: list[str]) -> set[str]:
+        if not ticket_ids:
+            return set()
+        stmt = select(Escalation.ticket_id).where(Escalation.ticket_id.in_(ticket_ids))
+        return set((await self.session.execute(stmt)).scalars())
 
     async def list_for_ticket(self, ticket_id: str) -> list[Escalation]:
         stmt = (
