@@ -25,6 +25,10 @@ Durable facts for this repository. `CLAUDE.md` wins if this file drifts. Update 
 - Stage 17 (Agentic DevOps) is optional and depends on stages 13–16. It is outside core Project 1 completion.
 - 2026-10-25 — F14 / observability: process settings are `get_settings()` in `backend/app/core/config.py` (cached). JSON logs come from `setup_logging()` and `log_context()` in `backend/app/core/logging.py`. Every line includes `request_id` and `workflow_id` (`null` when unset). `model_dump()` redacts secrets and URL passwords; connection code reads the attributes.
 - 2026-10-25 — N3: `RequestIdMiddleware` echoes a safe `X-Request-ID` or assigns a UUID, binds `log_context`, and sets the header on application responses, including 404 and 500. CORS sits outside it and exposes the header. `/health` and `/health/live` do not probe dependencies. `/health/ready` returns 200 `ready` or 503 `degraded` from configuration checks until the database, Redis, vector store, and LLM clients exist. Those details never include a URL, password, or API key.
+- 2026-11-21 - F1/F4 (Phase 2): ids are `varchar(36)` UUID text in Postgres too (not `uuid`), so the same SQLAlchemy models run on asyncpg and SQLite. Sample-data ids are `uuid5` of a key, so reseeding cannot duplicate rows. SQLite engines turn `PRAGMA foreign_keys` on so FK errors match Postgres.
+- 2026-11-21 - Phase 2: the demo bootstrap loads profiles, customers, subscriptions, workspaces, products, support_articles (15 KB articles), incidents, tickets and one ticket_message each. It runs only when `DEMO_MODE=true` and there are no customers and no tickets. Tickets start `new` with no category or severity; the workflow sets them.
+- 2026-11-21 - Phase 2: `sample_data/previous_resolutions.json` is NOT loaded into the database (there is no table for it among the 16). The Knowledge Agent reads it directly for similar cases in Phase 8.
+- 2026-11-21 - Phase 2: `database/seed.sql` is generated from the same records by `scripts/generate_seed_sql.py`; a test fails if it is stale. `database/schema.sql` was bootstrapped from the models and is now hand-owned. Migration 0001 copies it, 0002 copies `rls_policies.sql`.
 
 ## Roles
 
@@ -127,28 +131,22 @@ Cases live in `datasets/eval_cases.json` and each case needs a valid `expected_c
 
 Update each row in place. Do not mark a row done from intention.
 
-| Surface | State on 2026-10-25 |
+| Surface | State on 2026-11-21 |
 |---|---|
-| Repository contents | Requirement files are in place. P1-1 adds `backend/app/core/config.py`, `backend/app/core/logging.py`, and `tests/unit/test_config_logging.py`. Routes in the contract are specified and not implemented. Sample data, health routes, and the rest of the backend are absent. |
-| Implemented | P1-1, not merged: cached `get_settings()` for `CLAUDE.md` §10.1, `effective_jwt_secret`, and JSON logging (`setup_logging`, `log_context`) with `request_id` and `workflow_id` on every line. Health routes, request-id middleware, the pytest harness, Makefile, and `.env.example` are still absent. |
-| Validated locally | `uv run pytest`: 24 passed offline; `ruff check` clean; `uvicorn app.main:app` serves `/health/live` with `X-Request-ID`. `make` is not installed on this Windows machine, so the Makefile targets are unrun. `make demo` does not exist yet. |
+| Implemented | Phase 1 (settings, JSON logging, health, request id, offline harness, Makefile, `.env.example`) and Phase 2 (16 SQLAlchemy models, `database/schema.sql`, RLS, migrations 0001-0002, repositories, `sample_data/`, `seed_service`, lifespan bootstrap, `scripts/seed.py`, generated `database/seed.sql`). |
+| Validated locally | `.venv/Scripts/python.exe -m pytest -q`: 68 passed offline; `ruff check .` clean. `make` is not installed on this Windows machine, so Makefile targets are unrun; the `make seed` command was run directly (`scripts/seed.py`) and is idempotent. `make demo` does not exist yet. Postgres DDL, RLS and `seed.sql` were checked against the models by tests only; they have never been run on a real Postgres or Supabase. |
+| Not merged | Phase 2 work sits on branch `feat/Phase2_Persistence_and_demo_data`, uncommitted. |
+| Repair | The Phase 1 merge into `development` had left `main.py`, `health.py`, `request_id.py`, `pyproject.toml`, `uv.lock` and `tests/api/test_health.py` as two spliced versions (no test could be collected). They were repaired on the Phase 2 branch to the richer design in `docs/API_CONTRACT.md`; `uv.lock` was regenerated. |
 | Cloud credentials | None used. |
 | Applied to a real account | Nothing. |
 | GitHub Actions | Workflow files are not in the repo. None have been executed. |
-| Phase plan | Phase 1 tasks P1-1 to P1-4 are implemented. Phases 2–13 are not started. |
-| Repository contents | Requirement files are in place. P1-1 is merged. P1-2 adds health routes, request-id middleware, and `tests/api/test_health.py`. Sample data and the rest of the backend are absent. `frontend/lib/types.ts` is still created in P12-2. |
-| Implemented | P1-1 merged: cached settings and JSON logging. P1-2, not merged: `GET /health`, `GET /health/live` (no dependency I/O), `GET /health/ready` (configuration probes, 503 when degraded), `RequestIdMiddleware`, and CORS exposing `X-Request-ID`. The pytest harness, Makefile, and `.env.example` are still absent. Ready probes do not open a database, Redis, Qdrant, or LLM connection. |
-| Validated locally | `tests/unit/test_config_logging.py` and `tests/api/test_health.py`: 24 passed on this machine. `make test` and `make demo` do not exist yet. This is not a Phase 1 exit. |
-| Cloud credentials | None used. |
-| Applied to a real account | Nothing. |
-| GitHub Actions | Workflow files are not in the repo. None have been executed. |
-| Phase plan | Phase 1 is in progress (P1-1 merged, P1-2 implemented locally). Phases 2–13 are not started. |
+| Phase plan | Phases 1 and 2 validated locally. Phases 3-13 not started. `CLAUDE.md` section 19 still says Phase 1 in progress and Phase 2 not started; update it between sessions. |
 
 ## Open questions from `CLAUDE.md` §20
 
 - A Project 1 `README.md` was referenced by the course and was not supplied. Command names in `CLAUDE.md` §14 still need to be checked against it when it appears.
 - Course paths `../docs/`, `../deployment-agent/`, and `../shared-infrastructure/` sit outside this repo. They are not copied in yet.
-- Table counts disagree across the course notes (16 in the database doc, 15 data tables in the RLS note). `database/schema.sql` becomes the authority once it is written.
+- ~~Table counts disagree across the course notes~~ Closed 2026-11-21: `database/schema.sql` defines 16 tables and RLS is enabled on all 16 (`profiles` included). `tests/unit/test_schema_parity.py` keeps models and DDL in agreement.
 - Stage documents 00–17 are not in this repo. `PLAN_PHASE.md` is derived from `CLAUDE.md`, not from those missing files.
 
 ## Update protocol

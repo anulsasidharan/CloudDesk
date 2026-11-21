@@ -8,14 +8,12 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+    "aiosqlite>=0.20.0",
     "fastapi>=0.162.1",
     "langchain>=1.4.7",
     "pydantic-settings>=2.16.1",
+    "sqlalchemy[asyncio]>=2.0.36",
     "uvicorn[standard]>=0.54.0",
-    "fastapi>=0.162.0",
-    "langchain>=1.4.7",
-    "pydantic-settings>=2.16.1",
-    "uvicorn>=0.54.0",
 ]
 
 [project.scripts]
