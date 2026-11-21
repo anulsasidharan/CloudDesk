@@ -36,3 +36,12 @@ htmlcov/
 # Frontend (Phase 12)
 node_modules/
 .next/
+# Claude Code: track shared config only
+/.claude/*
+!/.claude/settings.json
+!/.claude/agents/
+!/.claude/skills/
+!/.claude/rules/
+!/.claude/hooks/
+.claude/settings.local.json
+.claude/transcripts/
