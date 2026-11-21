@@ -129,6 +129,13 @@ Update each row in place. Do not mark a row done from intention.
 
 | Surface | State on 2026-10-25 |
 |---|---|
+| Repository contents | Requirement files are in place. P1-1 adds `backend/app/core/config.py`, `backend/app/core/logging.py`, and `tests/unit/test_config_logging.py`. Routes in the contract are specified and not implemented. Sample data, health routes, and the rest of the backend are absent. |
+| Implemented | P1-1, not merged: cached `get_settings()` for `CLAUDE.md` §10.1, `effective_jwt_secret`, and JSON logging (`setup_logging`, `log_context`) with `request_id` and `workflow_id` on every line. Health routes, request-id middleware, the pytest harness, Makefile, and `.env.example` are still absent. |
+| Validated locally | `uv run pytest`: 24 passed offline; `ruff check` clean; `uvicorn app.main:app` serves `/health/live` with `X-Request-ID`. `make` is not installed on this Windows machine, so the Makefile targets are unrun. `make demo` does not exist yet. |
+| Cloud credentials | None used. |
+| Applied to a real account | Nothing. |
+| GitHub Actions | Workflow files are not in the repo. None have been executed. |
+| Phase plan | Phase 1 tasks P1-1 to P1-4 are implemented. Phases 2–13 are not started. |
 | Repository contents | Requirement files are in place. P1-1 is merged. P1-2 adds health routes, request-id middleware, and `tests/api/test_health.py`. Sample data and the rest of the backend are absent. `frontend/lib/types.ts` is still created in P12-2. |
 | Implemented | P1-1 merged: cached settings and JSON logging. P1-2, not merged: `GET /health`, `GET /health/live` (no dependency I/O), `GET /health/ready` (configuration probes, 503 when degraded), `RequestIdMiddleware`, and CORS exposing `X-Request-ID`. The pytest harness, Makefile, and `.env.example` are still absent. Ready probes do not open a database, Redis, Qdrant, or LLM connection. |
 | Validated locally | `tests/unit/test_config_logging.py` and `tests/api/test_health.py`: 24 passed on this machine. `make test` and `make demo` do not exist yet. This is not a Phase 1 exit. |

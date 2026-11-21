@@ -26,6 +26,16 @@ data/
 .ruff_cache/
 .mypy_cache/
 
+# Test / coverage output
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# Frontend (Phase 12)
+node_modules/
+.next/
 # Claude Code: track shared config only
 /.claude/*
 !/.claude/settings.json

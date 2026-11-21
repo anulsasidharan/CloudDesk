@@ -8,6 +8,10 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+    "fastapi>=0.162.1",
+    "langchain>=1.4.7",
+    "pydantic-settings>=2.16.1",
+    "uvicorn[standard]>=0.54.0",
     "fastapi>=0.162.0",
     "langchain>=1.4.7",
     "pydantic-settings>=2.16.1",
@@ -23,9 +27,20 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "httpx2>=2.16.0",
     "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.1.post1",
+    "ruff>=0.17.4",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = ["backend"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = [".venv"]
