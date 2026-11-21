@@ -112,6 +112,8 @@ Unknown tools require approval. Timeout is `TOOL_TIMEOUT_SECONDS`.
 - Long-term note types: `preference`, `past_issue`, `troubleshooting`, `note`. Recall up to 10 notes. After a run, store the past issue, the first three troubleshooting steps, and a resolution note.
 - `SECRET_PATTERNS` covers card numbers, API keys, and passwords.
 
+- 2026-11-21 - F5 (Phase 5): `rag/` sits at the repo root, so `pyproject.toml` pytest `pythonpath` is `["backend", "."]` and the Makefile runs uvicorn as `python -m uvicorn ... --app-dir backend` from the root. BM25 is a small in-repo implementation (no `rank_bm25` dependency). `VectorStoreService` has a sixth method, `list_chunks`, because keyword search needs the corpus. `retrieve(category=)` is a hard filter; `category_hint=` only nudges the rerank. `POST /knowledge/reindex` returns `{indexed: chunks, articles}`.
+
 ## Evaluation bar
 
 These fail the build: classification accuracy ≥ 0.80, retrieval hit-rate@3 ≥ 0.75, escalation correctness ≥ 0.90, citation rate ≥ 0.90, grounding rate ≥ 0.90.
@@ -141,6 +143,7 @@ Update each row in place. Do not mark a row done from intention.
 | Applied to a real account | Nothing. |
 | GitHub Actions | Workflow files are not in the repo. None have been executed. |
 | Phase 4 (2026-11-21) | Implemented: `GET/POST /tickets`, `GET/PATCH /tickets/{id}` (id or `CD-####`), `/events`, `/reply`, `/request-info`, `/escalate`, `GET /customers`, `GET /customers/{id}`; services `ticket_service`/`customer_service`; schemas `records`/`tickets`/`customers`; 36 new API tests; full suite 127 passed, ruff clean. Contract reshaped to match the DB model. Not built yet: `/run`, `/workflow` (Phase 10), approvals, knowledge, dashboard, agents, audit, settings routes. Branch `feat/Support_API`, uncommitted. |
+| Phase 5 (2026-11-21) | Implemented: `rag/` (`chunking`, `text`, `vector_store`, `retriever`, `ingest`), `scripts/ingest.py` (`make ingest`), `/knowledge/articles`, `/articles/{id}`, `/search`, `/reindex` (admin), index built at startup. 37 new tests; full suite 164 passed, ruff clean. Measured on the 12 demo tickets that have an article: hybrid hit@3 = 12/12, hit@1 = 11/12 (small set written alongside the articles, so optimistic). Corpus: 15 articles, 46 chunks. Not done: `QdrantVectorStore` is written but never run (`qdrant-client` is not a dependency); no real embedding provider (only `fake`); LLM rerank is a hook with no caller until the Knowledge Agent (Phase 8 in PLAN_PHASE.md, P9-4 in TASKS.md); similar cases are also there. Branch work uncommitted. |
 | Phase plan (older note) | Phases 1 and 2 validated locally. Phases 3-13 not started. `CLAUDE.md` section 19 still says Phase 1 in progress and Phase 2 not started; update it between sessions. |
 
 ## Open questions from `CLAUDE.md` §20
