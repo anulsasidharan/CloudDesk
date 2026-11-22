@@ -41,7 +41,11 @@ class SupportState(TypedDict, total=False):
     escalation_required: bool
     escalation_reason: str | None
     escalation_team: str | None
-    approval_status: str
+    escalation_severity: str | None
+    approval_status: str  # "not_required" | "pending" | "approved" | "rejected"
+    approval_request_id: str | None
+    approval_note: str | None
+    escalation_id: str | None
 
     # outcome
     actions: list[dict[str, Any]]

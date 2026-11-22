@@ -6,8 +6,8 @@ import logging
 from typing import Any
 
 from app.core import database
-from app.repositories import CustomerRepository, ResolutionActionRepository
-from app.schemas.common import ActionStatus
+from app.repositories import ApprovalRepository, CustomerRepository, ResolutionActionRepository
+from app.schemas.common import ActionStatus, ApprovalStatus
 from app.schemas.workflow import ToolCallRecord
 from app.tools import get_registry
 
@@ -86,49 +86,73 @@ async def risk_check(state: SupportState) -> dict[str, Any]:
             "escalation_required": decision.escalation_required,
             "escalation_reason": decision.reason or None,
             "escalation_team": decision.team,
+            "escalation_severity": decision.severity.value,
         },
         result.usage,
     )
 
 
-async def execute_resolution(state: SupportState) -> dict[str, Any]:
-    """Run the planned actions that need no approval, through ``ToolRegistry``.
+FINISHED_ACTIONS = (
+    ActionStatus.EXECUTED.value,
+    ActionStatus.FAILED.value,
+    ActionStatus.SKIPPED.value,
+)
 
-    Actions that need approval are recorded as ``awaiting_approval`` and are NOT executed: the
-    registry refuses them without ``approved=True``, and nothing in this phase sets it.
-    Re-running is safe: an action already recorded for this run is skipped.
+
+async def _approval_recorded(workflow_id: str) -> bool:
+    """True only when the database holds an APPROVED request for this run.
+
+    The database is the source of truth, not the graph state: an action that needs approval
+    never runs on the word of a state field alone (CLAUDE.md 18.1).
+    """
+    async with database.session_scope() as session:
+        approval = await ApprovalRepository(session).latest_for_workflow(workflow_id)
+        return approval is not None and approval.status == ApprovalStatus.APPROVED.value
+
+
+async def execute_resolution(state: SupportState) -> dict[str, Any]:
+    """Run the planned actions through ``ToolRegistry``: the one path for auto and approved actions.
+
+    An action that needs approval runs only when an approved request is recorded for this run, and
+    then the registry is told so with ``approved=True``. Otherwise it stays ``awaiting_approval``.
+    Re-running is safe: an action that already finished for this run is not run again.
     """
     tracer = tracer_for(state)
     outcomes: list[dict[str, Any]] = []
     async with tracer.node(EXECUTE):
         plan = plan_of(state)
         registry = get_registry()
+        approved = await _approval_recorded(state["workflow_id"])
         calls: list[ToolCallRecord] = []
         for action in plan.actions:
             async with database.session_scope() as session:
                 repo = ResolutionActionRepository(session)
-                recorded = {a.tool for a in await repo.list_for_workflow(state["workflow_id"])}
-                if action.tool in recorded:
-                    continue
-                row = await repo.add(
-                    workflow_id=state["workflow_id"],
-                    ticket_id=state["ticket_id"],
-                    tool=action.tool,
-                    args=action.args,
-                    requires_approval=action.requires_approval,
-                    status=(
-                        ActionStatus.AWAITING_APPROVAL.value
-                        if action.requires_approval
-                        else ActionStatus.PLANNED.value
-                    ),
-                )
-                row_id = row.id
-            if action.requires_approval:
+                row = await repo.for_workflow_tool(state["workflow_id"], action.tool)
+                if row is None:
+                    row = await repo.add(
+                        workflow_id=state["workflow_id"],
+                        ticket_id=state["ticket_id"],
+                        tool=action.tool,
+                        args=action.args,
+                        requires_approval=action.requires_approval,
+                        status=(
+                            ActionStatus.AWAITING_APPROVAL.value
+                            if action.requires_approval
+                            else ActionStatus.PLANNED.value
+                        ),
+                    )
+                row_id, row_status = row.id, row.status
+            if row_status in FINISHED_ACTIONS:
+                outcomes.append({"id": row_id, "tool": action.tool, "status": row_status})
+                continue
+            if action.requires_approval and not approved:
                 outcomes.append(
                     {"id": row_id, "tool": action.tool, "status": ActionStatus.AWAITING_APPROVAL.value}
                 )
                 continue
-            result = await run_tool(registry, action.tool, action.args, calls)
+            result = await run_tool(
+                registry, action.tool, action.args, calls, approved=action.requires_approval
+            )
             status = ActionStatus.EXECUTED if result.ok else ActionStatus.FAILED
             async with database.session_scope() as session:
                 row = await ResolutionActionRepository(session).get(row_id)

@@ -35,7 +35,7 @@ Errors: `{ "detail": string }` with proper HTTP status.
 | GET | `/tickets/{id}/events` | `WorkflowEvent[]` (node transitions, tool calls, timings); `[]` until a workflow has run. *(Implemented, Phase 4)* |
 | POST | `/tickets/{id}/reply` | body `{ body: string, internal?: boolean }` → **201** `TicketMessage` (role `agent`, author = caller's name). A public reply moves a `new` ticket to `in_progress`. **409** for a public reply on a `closed` ticket (internal notes still allowed). *(Implemented, Phase 4. Output validation, N5, joins in Phase 7.)* |
 | POST | `/tickets/{id}/request-info` | body `{ questions: string[] }` (1-10, blanks dropped) → **201** `TicketMessage` (numbered list) and ticket status `waiting_on_customer`. **409** when closed. *(Implemented, Phase 4)* |
-| POST | `/tickets/{id}/escalate` | body `{ reason, priority?: "normal"|"urgent" }` → **201** `Escalation` (team `support_leads`; severity `high`, or `critical` when urgent). Ticket status becomes `escalated`. *(Implemented, Phase 4 as a manual escalation; the AI path is Phase 11.)* |
+| POST | `/tickets/{id}/escalate` | body `{ reason, priority?: "normal"|"urgent" }` → **201** `Escalation` (team `support_leads`; severity `high`, or `critical` when urgent). Ticket status becomes `escalated`. *(Implemented, Phase 4 as a manual escalation. The AI path is the `escalation` graph node, Phase 11: it files the same kind of row through `create_escalation`.)* |
 | PATCH | `/tickets/{id}` | body `{ status?, severity?, assigned_to? }` → `Ticket`. Only sent fields change; `assigned_to: null` un-assigns. Empty body → 422; unknown assignee → 404. Moving to `resolved`/`closed` stamps `resolved_at`. *(Implemented, Phase 4)* |
 
 Mutating ticket routes (`POST /tickets`, `/run`, `/reply`, `/request-info`, `/escalate`, and `PATCH`) require role `agent` or `admin`. A `viewer` receives **403**.
@@ -46,7 +46,7 @@ type TicketStatus = "new"|"in_progress"|"waiting_on_customer"|"waiting_on_approv
 type Severity = "low"|"medium"|"high"|"critical";
 type Category = "login_issue"|"billing"|"api_failure"|"workspace_permissions"|"storage_quota"|"integration"|"feature_request"|"account"|"security"|"other";
 
-`/run` and `/workflow` are built (Phase 10). Until Phase 11 a run never pauses: approval-required actions are recorded as `pending_approval` and not executed, and `escalation_required` is reported but no escalation row is filed.
+`/run` and `/workflow` are built (Phase 10). Since Phase 11 a run can pause or escalate. When the plan holds an approval-required action the run stops at `human_approval`: `WorkflowState.status` is `waiting_for_approval`, the ticket is `waiting_on_approval`, `approval_status` is `pending`, `approval_request_id` is set, and the action is `pending_approval` and not executed. When a policy rule matches, the run goes straight to `escalation` (no approval wait): an `Escalation` row is filed, the ticket becomes `escalated`, and `WorkflowState.status` is `escalated`. A rejected approval also ends in `escalated`, and its actions become `rejected`.
 
 TicketSummary = { id, ticket_number, subject, status, severity, category, customer_id, customer_name, channel, created_at, updated_at, escalation_required:boolean, approval_status: "not_required"|"pending"|"approved"|"rejected" }
 Ticket = TicketSummary & { body, assigned_to?, resolved_at?, tags: string[] }
@@ -86,15 +86,17 @@ ResolutionAction = { id, ticket_id, tool, arguments: object, status: "planned"|"
 WorkflowEvent = { id, workflow_id, ticket_id, event_type: "node_started"|"node_completed"|"tool_called"|"llm_called"|"approval_requested"|"approval_resolved"|"error"|"workflow_completed", node: string|null, tool: string|null, message: string, duration_ms: number|null, payload: object, created_at }
 ```
 
-## Approvals (human-in-the-loop)
+## Approvals (human-in-the-loop) *(Implemented, Phase 11)*
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/approvals?status=pending` | `ApprovalRequest[]` |
 | GET | `/approvals/{id}` | `ApprovalRequest` |
-| POST | `/approvals/{id}/approve` | body `{ note?: string }` → resumes the paused workflow; returns `{ approval: ApprovalRequest, workflow: WorkflowState }` (role `admin` or `agent`). **409** when the run is not paused |
-| POST | `/approvals/{id}/reject` | body `{ note?: string }` → resumes workflow on the rejection branch (escalates). **409** when the run is not paused. A `viewer` receives **403** on approve and reject |
+| POST | `/approvals/{id}/approve` | body `{ note?: string }` → records the decision, resumes the paused workflow and returns `{ approval: ApprovalRequest, workflow: WorkflowState }` once it has finished (role `admin` or `agent`; the body may be omitted). The approved action runs through `ToolRegistry` exactly once. **409** `Approval has already been decided` for a second click; **409** `Workflow is not waiting for approval` when the run is not paused; **404** `Approval not found` |
+| POST | `/approvals/{id}/reject` | body `{ note?: string }` → resumes workflow on the rejection branch (escalates). Same 404 and 409 rules. A `viewer` receives **403** on approve and reject (but may read both GET routes). `?status=` accepts `pending`, `approved`, `rejected`; anything else is **422** |
 
-`ApprovalRequest = { id, ticket_id, ticket_number, workflow_id, action: PlannedAction, risk_level, reason, requested_by: "ai", status: "pending"|"approved"|"rejected", decided_by?, decision_note?, created_at, decided_at? }`
+`ApprovalRequest = { id, ticket_id, ticket_number, workflow_id, action: PlannedAction|null, actions: PlannedAction[], risk_level, reason, requested_by: "ai", status: "pending"|"approved"|"rejected", decided_by?, decision_note?, created_at, decided_at? }`
+
+One approval request covers every approval-required action of one run. `action` is the first of them and `actions` lists all. `risk_level` and `reason` come from the `risk_check` node.
 
 ## Customers
 | Method | Path |

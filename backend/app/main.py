@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from agents.checkpointer import close_checkpointer
 from app import distribution_version
+from app.api.approvals import router as approvals_router
 from app.api.auth import router as auth_router
 from app.api.customers import router as customers_router
 from app.api.health import router as health_router
@@ -68,6 +69,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(tickets_router, prefix="/api/v1")
+    app.include_router(approvals_router, prefix="/api/v1")
     app.include_router(customers_router, prefix="/api/v1")
     app.include_router(knowledge_router, prefix="/api/v1")
     return app

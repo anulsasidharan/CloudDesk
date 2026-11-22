@@ -71,21 +71,27 @@ def test_events_never_contain_raw_prompts_or_body(client, agent_headers):
     assert "untrusted_content" not in blob
 
 
-def test_refund_is_held_not_executed(client, agent_headers):
+def test_refund_pauses_the_run_for_a_person(client, agent_headers):
     _run(client, agent_headers, "CD-1002")
     state = _workflow(client, agent_headers, "CD-1002")
-    assert state["status"] == "completed"
+    assert state["status"] == "waiting_for_approval"
     assert state["risk"]["level"] == "high"
+    assert state["approval_status"] == "pending" and state["approval_request_id"]
     refund = next(a for a in state["actions"] if a["tool"] == "create_refund_request")
     assert refund["status"] == "pending_approval" and refund["result"] is None
     assert refund["requires_approval"] is True
+    assert "execute_resolution" not in state["completed_nodes"]
 
 
-def test_policy_ticket_is_high_risk_and_flagged(client, agent_headers):
+def test_policy_ticket_escalates_without_an_approval_wait(client, agent_headers):
     _run(client, agent_headers, "CD-1005")
     state = _workflow(client, agent_headers, "CD-1005")
+    assert state["status"] == "escalated"
     assert state["escalation_required"] is True
     assert state["risk"]["level"] == "high"
+    assert state["approval_status"] == "not_required"
+    assert "escalation" in state["completed_nodes"]
+    assert "human_approval" not in state["completed_nodes"]
     assert all(a["tool"] != "create_refund_request" for a in state["actions"])
 
 
