@@ -1,0 +1,5 @@
+environment   = "prod"
+name_prefix   = "clouddesk-prod"
+backend_count = 3
+region        = "us-east-1"
+# Secrets come from TF_VAR_* env vars, never from this file.

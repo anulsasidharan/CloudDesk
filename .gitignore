@@ -45,3 +45,12 @@ node_modules/
 !/.claude/hooks/
 .claude/settings.local.json
 .claude/transcripts/
+
+# Terraform (Phase 14): var-files, state and plans never get committed
+*.tfvars
+!*.tfvars.example
+backend.hcl
+tfplan
+*.tfstate
+*.tfstate.*
+.terraform/

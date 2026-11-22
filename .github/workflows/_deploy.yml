@@ -1,0 +1,33 @@
+# Reusable pipeline: build-and-push -> plan -> [approval] -> apply -> smoke.
+# NOT executed: needs a pushed repo, OIDC cloud roles and GitHub Environments with reviewers.
+name: _deploy
+on:
+  workflow_call:
+    inputs:
+      cloud: { required: true, type: string }
+      environment: { required: true, type: string }
+permissions: { id-token: write, contents: read }
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform -chdir=deployment/${{ inputs.cloud }} init -backend-config=backend.hcl
+      - run: >
+          terraform -chdir=deployment/${{ inputs.cloud }} plan
+          -var-file=environments/${{ inputs.environment }}/terraform.tfvars
+          -var image_tag=${{ github.sha }} -out=tfplan
+  apply:
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment == 'prod' && 'prod-apply' || inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: deployment/scripts/deploy.sh ${{ inputs.cloud }} ${{ inputs.environment }}
+  smoke:
+    needs: apply
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: BASE_URL=${{ vars.BASE_URL }} deployment/scripts/smoke_test.sh

@@ -1,0 +1,4 @@
+environment   = "staging"
+name_prefix   = "clouddesk-staging"
+backend_count = 2
+location      = "eastus"

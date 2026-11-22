@@ -1,0 +1,5 @@
+environment   = "prod"
+name_prefix   = "clouddesk-prod"
+backend_count = 3
+region        = "us-central1"
+project_id    = "REPLACE_ME"

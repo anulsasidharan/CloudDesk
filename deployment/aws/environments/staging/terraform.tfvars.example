@@ -1,0 +1,5 @@
+environment   = "staging"
+name_prefix   = "clouddesk-staging"
+backend_count = 2
+region        = "us-east-1"
+# Secrets come from TF_VAR_* env vars, never from this file.

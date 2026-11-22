@@ -206,11 +206,11 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P14-1 · Evaluation thresholds | `feature/eval-thresholds` | Pending ❌ |
-| P14-2 · Backend and frontend Dockerfiles | `feature/docker-images` | Pending ❌ |
-| P14-3 · Compose stack | `feature/docker-compose` | Pending ❌ |
-| P14-4 · Terraform and CI scaffolds | `feature/delivery-terraform-ci` | Pending ❌ |
-| P14-5 · Deployment hygiene tests | `feature/deployment-hygiene-tests` | Pending ❌ |
+| P14-1 · Evaluation thresholds | `feature/eval-thresholds` | Completed ✅ |
+| P14-2 · Backend and frontend Dockerfiles | `feature/docker-images` | Completed ✅ |
+| P14-3 · Compose stack | `feature/docker-compose` | Completed ✅ |
+| P14-4 · Terraform and CI scaffolds | `feature/delivery-terraform-ci` | Completed ✅ |
+| P14-5 · Deployment hygiene tests | `feature/deployment-hygiene-tests` | Completed ✅ |
 
 ---
 
@@ -272,5 +272,5 @@ Phases 4, 5, 6, and 7 start together once Phase 2 (and Phase 3, for Phase 4 only
 | 11 | Approval and escalation | 5 | 0 |
 | 12 | Console shell | 4 | 4 |
 | 13 | Ticket workflow screen | 4 | 0 |
-| 14 | Evaluation and delivery | 5 | 0 |
+| 14 | Evaluation and delivery | 5 | 5 |
 | **Total** | | **62** | **38** |
