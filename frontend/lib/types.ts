@@ -226,6 +226,109 @@ export interface AuditLog {
   created_at: string;
 }
 
+// ---- Phase 13: workflow and approvals (docs/API_CONTRACT.md "Workflow state", "Approvals") ----
+
+export type WorkflowStatus = "running" | "waiting_for_approval" | "completed" | "failed" | "escalated";
+
+export interface Evidence {
+  id: string;
+  title: string;
+  source: string;
+  snippet: string;
+  score: number;
+  url?: string | null;
+  article_id?: string | null;
+}
+
+export interface PlannedAction {
+  tool: string;
+  arguments: Record<string, unknown>;
+  requires_approval: boolean;
+  description: string;
+}
+
+export interface ResolutionAction {
+  id: string;
+  ticket_id: string;
+  tool: string;
+  arguments: Record<string, unknown>;
+  status: "planned" | "pending_approval" | "approved" | "executed" | "rejected" | "failed";
+  result: Record<string, unknown> | null;
+  requires_approval: boolean;
+  created_at: string;
+  executed_at?: string | null;
+}
+
+export interface WorkflowState {
+  workflow_id: string;
+  ticket_id: string;
+  status: WorkflowStatus;
+  current_node: string | null;
+  completed_nodes: string[];
+  classification: { category: Category; intent: string; summary: string; confidence: number } | null;
+  severity: Severity | null;
+  severity_reason: string | null;
+  retrieved_docs: Evidence[];
+  previous_cases: { ticket_number: string; subject: string; resolution_summary: string; similarity: number }[];
+  diagnosis: {
+    problem: string;
+    probable_causes: string[];
+    troubleshooting_steps: string[];
+    confidence: number;
+  } | null;
+  resolution_plan: {
+    summary: string;
+    customer_response: string;
+    internal_notes: string;
+    actions: PlannedAction[];
+  } | null;
+  actions: ResolutionAction[];
+  risk: { level: "low" | "medium" | "high"; reasons: string[] } | null;
+  escalation_required: boolean;
+  escalation_reason: string | null;
+  approval_status: ApprovalState;
+  approval_request_id: string | null;
+  final_response: string | null;
+  ticket_summary: string | null;
+  errors: string[];
+  started_at?: string | null;
+  finished_at?: string | null;
+  duration_ms?: number | null;
+  token_usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+    estimated_cost_usd: number;
+  } | null;
+}
+
+export interface ApprovalRequest {
+  id: string;
+  ticket_id: string;
+  ticket_number: string;
+  workflow_id: string;
+  action: PlannedAction | null;
+  actions: PlannedAction[];
+  risk_level: string;
+  reason: string;
+  requested_by: string;
+  status: "pending" | "approved" | "rejected";
+  decided_by?: string | null;
+  decision_note?: string | null;
+  created_at: string;
+  decided_at?: string | null;
+}
+
+export interface DecisionResult {
+  approval: ApprovalRequest;
+  workflow: WorkflowState | null;
+}
+
+export interface RunAccepted {
+  workflow_id: string;
+  status: "running";
+}
+
 export interface AppSettings {
   demo_mode: boolean;
   environment: string;

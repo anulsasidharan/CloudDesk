@@ -2,19 +2,24 @@
 import type {
   AgentsResponse,
   AppSettings,
+  ApprovalRequest,
   Article,
   AuditLog,
   CustomerDetail,
   Customer,
   DashboardSummary,
+  DecisionResult,
   Escalation,
   Page,
   Role,
+  RunAccepted,
   TicketDetail,
+  TicketMessage,
   TicketSummary,
   TokenResponse,
   User,
   WorkflowEvent,
+  WorkflowState,
 } from "./types";
 
 // Inlined at build time: the image is rebuilt per environment.
@@ -144,6 +149,38 @@ export const api = {
   ticket: (id: string) => request<TicketDetail>(`/api/v1/tickets/${encodeURIComponent(id)}`),
   ticketEvents: (id: string) =>
     request<WorkflowEvent[]>(`/api/v1/tickets/${encodeURIComponent(id)}/events`),
+
+  // Phase 13: the ticket workflow screen. Every write is a POST, so it is never auto-retried.
+  runWorkflow: (id: string) =>
+    request<RunAccepted>(`/api/v1/tickets/${encodeURIComponent(id)}/run`, { method: "POST" }),
+  workflow: (id: string) => request<WorkflowState>(`/api/v1/tickets/${encodeURIComponent(id)}/workflow`),
+  approve: (approvalId: string, note?: string) =>
+    request<DecisionResult>(`/api/v1/approvals/${encodeURIComponent(approvalId)}/approve`, {
+      method: "POST",
+      body: { note },
+    }),
+  reject: (approvalId: string, note?: string) =>
+    request<DecisionResult>(`/api/v1/approvals/${encodeURIComponent(approvalId)}/reject`, {
+      method: "POST",
+      body: { note },
+    }),
+  approval: (approvalId: string) =>
+    request<ApprovalRequest>(`/api/v1/approvals/${encodeURIComponent(approvalId)}`),
+  reply: (id: string, body: string, internal = false) =>
+    request<TicketMessage>(`/api/v1/tickets/${encodeURIComponent(id)}/reply`, {
+      method: "POST",
+      body: { body, internal },
+    }),
+  requestInfo: (id: string, questions: string[]) =>
+    request<TicketMessage>(`/api/v1/tickets/${encodeURIComponent(id)}/request-info`, {
+      method: "POST",
+      body: { questions },
+    }),
+  escalate: (id: string, reason: string, priority: "normal" | "urgent" = "normal") =>
+    request<Escalation>(`/api/v1/tickets/${encodeURIComponent(id)}/escalate`, {
+      method: "POST",
+      body: { reason, priority },
+    }),
 
   customers: (q: { search?: string; page?: number; page_size?: number }) =>
     request<Page<Customer>>("/api/v1/customers", { query: q }),
