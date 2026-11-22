@@ -15,9 +15,10 @@ _OFFLINE_ENV = {
     "REDIS_URL": "",
     "DATABASE_URL": f"sqlite+aiosqlite:///{(_TMP / 'support.db').as_posix()}",
     "CHECKPOINT_DB_PATH": ":memory:",
-    "JWT_SECRET": "test-secret-not-for-production",
+    "JWT_SECRET": "test-secret-not-for-production-use-only-32b",
     "SUPABASE_JWT_SECRET": "",
     "LLM_API_KEY": "",
+    "RATE_LIMIT_PER_MINUTE": "100000",  # rate-limit tests build their own limiter
 }
 os.environ.update(_OFFLINE_ENV)
 
@@ -33,3 +34,24 @@ def client() -> TestClient:
 
     with TestClient(app) as test_client:
         yield test_client
+
+
+def _headers_for(client: TestClient, role: str) -> dict[str, str]:
+    response = client.post("/api/v1/auth/demo-login", json={"role": role})
+    assert response.status_code == 200, response.text
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}
+
+
+@pytest.fixture(scope="session")
+def agent_headers(client: TestClient) -> dict[str, str]:
+    return _headers_for(client, "agent")
+
+
+@pytest.fixture(scope="session")
+def admin_headers(client: TestClient) -> dict[str, str]:
+    return _headers_for(client, "admin")
+
+
+@pytest.fixture(scope="session")
+def viewer_headers(client: TestClient) -> dict[str, str]:
+    return _headers_for(client, "viewer")

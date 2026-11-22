@@ -1,6 +1,6 @@
 """Knowledge articles, incidents and the product catalogue."""
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 
 from app.models.entities import Incident, Product, SupportArticle
 from app.repositories.base import BaseRepository
@@ -19,6 +19,26 @@ class SupportArticleRepository(BaseRepository[SupportArticle]):
         if category:
             stmt = stmt.where(SupportArticle.category == category)
         return list((await self.session.execute(stmt)).scalars())
+
+
+    async def search(self, term: str = "", category: str | None = None) -> list[SupportArticle]:
+        """Case-insensitive match on title, slug or summary, optionally within one category."""
+        stmt = select(SupportArticle).order_by(SupportArticle.title)
+        if term.strip():
+            like = f"%{term.strip().lower()}%"
+            stmt = stmt.where(
+                or_(
+                    func.lower(SupportArticle.title).like(like),
+                    func.lower(SupportArticle.slug).like(like),
+                    func.lower(SupportArticle.summary).like(like),
+                )
+            )
+        if category:
+            stmt = stmt.where(SupportArticle.category == category)
+        return list((await self.session.execute(stmt)).scalars())
+
+    async def get_by_id_or_slug(self, key: str) -> SupportArticle | None:
+        return await self.get(key) or await self.get_by_slug(key)
 
 
 class IncidentRepository(BaseRepository[Incident]):

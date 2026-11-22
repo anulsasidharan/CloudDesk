@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from app.models.entities import (
     ApprovalRequest,
@@ -63,6 +63,14 @@ class WorkflowEventRepository(BaseRepository[WorkflowEvent]):
 class ResolutionActionRepository(BaseRepository[ResolutionAction]):
     model = ResolutionAction
 
+    async def list_for_ticket(self, ticket_id: str) -> list[ResolutionAction]:
+        stmt = (
+            select(ResolutionAction)
+            .where(ResolutionAction.ticket_id == ticket_id)
+            .order_by(ResolutionAction.created_at, ResolutionAction.id)
+        )
+        return list((await self.session.execute(stmt)).scalars())
+
     async def list_for_workflow(self, workflow_id: str) -> list[ResolutionAction]:
         stmt = (
             select(ResolutionAction)
@@ -71,9 +79,41 @@ class ResolutionActionRepository(BaseRepository[ResolutionAction]):
         )
         return list((await self.session.execute(stmt)).scalars())
 
+    async def for_workflow_tool(self, workflow_id: str, tool: str) -> ResolutionAction | None:
+        stmt = select(ResolutionAction).where(
+            ResolutionAction.workflow_id == workflow_id, ResolutionAction.tool == tool
+        )
+        return (await self.session.execute(stmt)).scalars().first()
+
 
 class ApprovalRepository(BaseRepository[ApprovalRequest]):
     model = ApprovalRequest
+
+    async def latest_for_workflow(self, workflow_id: str) -> ApprovalRequest | None:
+        stmt = (
+            select(ApprovalRequest)
+            .where(ApprovalRequest.workflow_id == workflow_id)
+            .order_by(ApprovalRequest.created_at.desc(), ApprovalRequest.id.desc())
+            .limit(1)
+        )
+        return (await self.session.execute(stmt)).scalar_one_or_none()
+
+    async def list_filtered(self, status: str | None = None) -> list[ApprovalRequest]:
+        stmt = select(ApprovalRequest).order_by(ApprovalRequest.created_at.desc())
+        if status:
+            stmt = stmt.where(ApprovalRequest.status == status)
+        return list((await self.session.execute(stmt)).scalars())
+
+    async def latest_status_by_ticket(self, ticket_ids: list[str]) -> dict[str, str]:
+        """Most recent approval status per ticket; tickets with no approval are absent."""
+        if not ticket_ids:
+            return {}
+        stmt = (
+            select(ApprovalRequest.ticket_id, ApprovalRequest.status)
+            .where(ApprovalRequest.ticket_id.in_(ticket_ids))
+            .order_by(ApprovalRequest.created_at, ApprovalRequest.id)
+        )
+        return {ticket_id: status for ticket_id, status in (await self.session.execute(stmt)).all()}
 
     async def pending(self) -> list[ApprovalRequest]:
         stmt = (
@@ -89,6 +129,35 @@ class ApprovalRepository(BaseRepository[ApprovalRequest]):
             ApprovalRequest.status == ApprovalStatus.PENDING.value,
         )
         return (await self.session.execute(stmt)).scalars().first()
+
+    async def claim(
+        self,
+        approval_id: str,
+        status: ApprovalStatus,
+        *,
+        decided_by: str | None,
+        note: str | None = None,
+    ) -> bool:
+        """Decide a request only if it is still pending. ``False`` means someone else got there first.
+
+        One conditional UPDATE, so two simultaneous clicks cannot both win.
+        """
+        stmt = (
+            update(ApprovalRequest)
+            .where(
+                ApprovalRequest.id == approval_id,
+                ApprovalRequest.status == ApprovalStatus.PENDING.value,
+            )
+            .values(
+                status=status.value,
+                decided_by=decided_by,
+                decision_note=note,
+                decided_at=datetime.now(UTC),
+            )
+        )
+        result = await self.session.execute(stmt)
+        await self.session.flush()
+        return result.rowcount == 1
 
     async def decide(
         self,
@@ -108,6 +177,16 @@ class ApprovalRepository(BaseRepository[ApprovalRequest]):
 
 class EscalationRepository(BaseRepository[Escalation]):
     model = Escalation
+
+    async def ticket_ids_with_escalation(self, ticket_ids: list[str]) -> set[str]:
+        if not ticket_ids:
+            return set()
+        stmt = select(Escalation.ticket_id).where(Escalation.ticket_id.in_(ticket_ids))
+        return set((await self.session.execute(stmt)).scalars())
+
+    async def for_workflow(self, workflow_id: str) -> Escalation | None:
+        stmt = select(Escalation).where(Escalation.workflow_id == workflow_id).limit(1)
+        return (await self.session.execute(stmt)).scalars().first()
 
     async def list_for_ticket(self, ticket_id: str) -> list[Escalation]:
         stmt = (

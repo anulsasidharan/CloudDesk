@@ -47,10 +47,10 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P3-1 · JWT and `require_role` | `feature/jwt-rbac` | Pending ❌ |
-| P3-2 · Demo auth routes and tokens | `feature/auth-demo-tokens` | Pending ❌ |
-| P3-3 · Redis rate limit | `feature/rate-limit-redis` | Pending ❌ |
-| P3-4 · Audit middleware and middleware order | `feature/audit-middleware` | Pending ❌ |
+| P3-1 · JWT and `require_role` | `feature/jwt-rbac` | Completed ✅ |
+| P3-2 · Demo auth routes and tokens | `feature/auth-demo-tokens` | Completed ✅ |
+| P3-3 · Redis rate limit | `feature/rate-limit-redis` | Completed ✅ |
+| P3-4 · Audit middleware and middleware order | `feature/audit-middleware` | Completed ✅ |
 
 ---
 
@@ -61,9 +61,9 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P4-1 · Ticket and customer API contract | `feature/api-contract-docs` | Pending ❌ |
-| P4-2 · Ticket API | `feature/api-tickets` | Pending ❌ |
-| P4-3 · Customer API | `feature/api-customers` | Pending ❌ |
+| P4-1 · Ticket and customer API contract | `feature/api-contract-docs` | Completed ✅ |
+| P4-2 · Ticket API | `feature/api-tickets` | Completed ✅ |
+| P4-3 · Customer API | `feature/api-customers` | Completed ✅ |
 
 ---
 
@@ -74,10 +74,10 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P5-1 · Knowledge articles and chunking | `feature/rag-chunking` | Pending ❌ |
-| P5-2 · Vector store and fake embeddings | `feature/rag-vector-store` | Pending ❌ |
-| P5-3 · Hybrid retriever | `feature/rag-hybrid-retriever` | Pending ❌ |
-| P5-4 · Ingest command and knowledge API | `feature/rag-ingest-api` | Pending ❌ |
+| P5-1 · Knowledge articles and chunking | `feature/rag-chunking` | Completed ✅ |
+| P5-2 · Vector store and fake embeddings | `feature/rag-vector-store` | Completed ✅ |
+| P5-3 · Hybrid retriever | `feature/rag-hybrid-retriever` | Completed ✅ |
+| P5-4 · Ingest command and knowledge API | `feature/rag-ingest-api` | Completed ✅ |
 
 ---
 
@@ -88,10 +88,10 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P6-1 · Tool registry and policy | `feature/tool-registry-policy` | Pending ❌ |
-| P6-2 · Read-only support tools | `feature/tools-read-only` | Pending ❌ |
-| P6-3 · Approval-gated write tools | `feature/tools-approval-gated` | Pending ❌ |
-| P6-4 · Mock integrations | `feature/integrations-mock` | Pending ❌ |
+| P6-1 · Tool registry and policy | `feature/tool-registry-policy` | Completed ✅ |
+| P6-2 · Read-only support tools | `feature/tools-read-only` | Completed ✅ |
+| P6-3 · Approval-gated write tools | `feature/tools-approval-gated` | Completed ✅ |
+| P6-4 · Mock integrations | `feature/integrations-mock` | Completed ✅ |
 
 ---
 
@@ -102,10 +102,10 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P7-1 · Escalation and severity rules | `feature/policy-rules` | Pending ❌ |
-| P7-2 · Injection wrapping and security preamble | `feature/guardrail-injection` | Pending ❌ |
-| P7-3 · Customer output validation | `feature/guardrail-output-validation` | Pending ❌ |
-| P7-4 · Secret scrub | `feature/guardrail-secret-scrub` | Pending ❌ |
+| P7-1 · Escalation and severity rules | `feature/policy-rules` | Completed ✅ |
+| P7-2 · Injection wrapping and security preamble | `feature/guardrail-injection` | Completed ✅ |
+| P7-3 · Customer output validation | `feature/guardrail-output-validation` | Completed ✅ |
+| P7-4 · Secret scrub | `feature/guardrail-secret-scrub` | Completed ✅ |
 
 ---
 
@@ -116,9 +116,9 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P8-1 · Short-term Redis facade | `feature/memory-short-term` | Pending ❌ |
-| P8-2 · Long-term customer memory | `feature/memory-long-term` | Pending ❌ |
-| P8-3 · Recall and record service | `feature/memory-service` | Pending ❌ |
+| P8-1 · Short-term Redis facade | `feature/memory-short-term` | Completed ✅ |
+| P8-2 · Long-term customer memory | `feature/memory-long-term` | Completed ✅ |
+| P8-3 · Recall and record service | `feature/memory-service` | Completed ✅ |
 
 ---
 
@@ -129,14 +129,14 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P9-1 · Workflow schemas and fake LLM | `feature/workflow-schemas-fake-llm` | Pending ❌ |
-| P9-2 · Supervisor agent | `feature/agent-supervisor` | Pending ❌ |
-| P9-3 · Customer agent | `feature/agent-customer` | Pending ❌ |
-| P9-4 · Knowledge agent | `feature/agent-knowledge` | Pending ❌ |
-| P9-5 · Troubleshooting agent | `feature/agent-troubleshooting` | Pending ❌ |
-| P9-6 · Resolution agent | `feature/agent-resolution` | Pending ❌ |
-| P9-7 · Escalation agent | `feature/agent-escalation` | Pending ❌ |
-| P9-8 · Eval case dataset | `feature/agent-eval-cases` | Pending ❌ |
+| P9-1 · Workflow schemas and fake LLM | `feature/workflow-schemas-fake-llm` | Completed ✅ |
+| P9-2 · Supervisor agent | `feature/agent-supervisor` | Completed ✅ |
+| P9-3 · Customer agent | `feature/agent-customer` | Completed ✅ |
+| P9-4 · Knowledge agent | `feature/agent-knowledge` | Completed ✅ |
+| P9-5 · Troubleshooting agent | `feature/agent-troubleshooting` | Completed ✅ |
+| P9-6 · Resolution agent | `feature/agent-resolution` | Completed ✅ |
+| P9-7 · Escalation agent | `feature/agent-escalation` | Completed ✅ |
+| P9-8 · Eval case dataset | `feature/agent-eval-cases` | Completed ✅ |
 
 ---
 
@@ -147,12 +147,12 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P10-1 · Support state and checkpointer | `feature/graph-state-checkpointer` | Pending ❌ |
-| P10-2 · Supervisor graph nodes | `feature/graph-nodes-supervisor` | Pending ❌ |
-| P10-3 · Investigate graph nodes | `feature/graph-nodes-investigate` | Pending ❌ |
-| P10-4 · Resolution and risk nodes | `feature/graph-nodes-resolution` | Pending ❌ |
-| P10-5 · Graph wiring and run API | `feature/graph-run-api` | Pending ❌ |
-| P10-6 · Workflow tracer and events API | `feature/workflow-tracer-events` | Pending ❌ |
+| P10-1 · Support state and checkpointer | `feature/graph-state-checkpointer` | Completed ✅ |
+| P10-2 · Supervisor graph nodes | `feature/graph-nodes-supervisor` | Completed ✅ |
+| P10-3 · Investigate graph nodes | `feature/graph-nodes-investigate` | Completed ✅ |
+| P10-4 · Resolution and risk nodes | `feature/graph-nodes-resolution` | Completed ✅ |
+| P10-5 · Graph wiring and run API | `feature/graph-run-api` | Completed ✅ |
+| P10-6 · Workflow tracer and events API | `feature/workflow-tracer-events` | Completed ✅ |
 
 ---
 
@@ -163,11 +163,11 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P11-1 · Human approval interrupt | `feature/workflow-human-approval` | Pending ❌ |
-| P11-2 · Approval decide and resume API | `feature/api-approvals-resume` | Pending ❌ |
-| P11-3 · Escalation routing | `feature/workflow-escalation-routing` | Pending ❌ |
-| P11-4 · Execute resolution on the shared tool path | `feature/workflow-execute-resolution` | Pending ❌ |
-| P11-5 · Demo script for CD-1002 and CD-1005 | `feature/demo-approval-escalation` | Pending ❌ |
+| P11-1 · Human approval interrupt | `feature/workflow-human-approval` | Completed ✅ |
+| P11-2 · Approval decide and resume API | `feature/api-approvals-resume` | Completed ✅ |
+| P11-3 · Escalation routing | `feature/workflow-escalation-routing` | Completed ✅ |
+| P11-4 · Execute resolution on the shared tool path | `feature/workflow-execute-resolution` | Completed ✅ |
+| P11-5 · Demo script for CD-1002 and CD-1005 | `feature/demo-approval-escalation` | Completed ✅ |
 
 ---
 
@@ -178,10 +178,10 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P12-1 · Next.js app shell and navigation | `feature/frontend-app-shell` | Pending ❌ |
-| P12-2 · Typed API client | `feature/frontend-api-client` | Pending ❌ |
-| P12-3 · Login and role-aware layout | `feature/frontend-auth-layout` | Pending ❌ |
-| P12-4 · Read-only list pages | `feature/frontend-read-pages` | Pending ❌ |
+| P12-1 · Next.js app shell and navigation | `feature/frontend-app-shell` | Completed ✅ |
+| P12-2 · Typed API client | `feature/frontend-api-client` | Completed ✅ |
+| P12-3 · Login and role-aware layout | `feature/frontend-auth-layout` | Completed ✅ |
+| P12-4 · Read-only list pages | `feature/frontend-read-pages` | Completed ✅ |
 
 ---
 
@@ -259,18 +259,18 @@ Phases 4, 5, 6, and 7 start together once Phase 2 (and Phase 3, for Phase 4 only
 
 | Phase | Name | Tasks | Completed |
 |-------|------|-------|-----------|
-| 1 | Runtime skeleton | 4 | 0 |
-| 2 | Persistence and demo data | 4 | 0 |
-| 3 | Identity and request guards | 4 | 0 |
-| 4 | Support API | 3 | 0 |
-| 5 | Knowledge pipeline | 4 | 0 |
-| 6 | Tools and mocks | 4 | 0 |
-| 7 | Rules and guardrails | 4 | 0 |
-| 8 | Memory | 3 | 0 |
-| 9 | Specialist agents | 8 | 0 |
+| 1 | Runtime skeleton | 4 | 4 |
+| 2 | Persistence and demo data | 4 | 4 |
+| 3 | Identity and request guards | 4 | 4 |
+| 4 | Support API | 3 | 3 |
+| 5 | Knowledge pipeline | 4 | 4 |
+| 6 | Tools and mocks | 4 | 4 |
+| 7 | Rules and guardrails | 4 | 4 |
+| 8 | Memory | 3 | 3 |
+| 9 | Specialist agents | 8 | 8 |
 | 10 | Workflow graph and trace | 6 | 0 |
 | 11 | Approval and escalation | 5 | 0 |
-| 12 | Console shell | 4 | 0 |
+| 12 | Console shell | 4 | 4 |
 | 13 | Ticket workflow screen | 4 | 0 |
 | 14 | Evaluation and delivery | 5 | 0 |
-| **Total** | | **62** | **0** |
+| **Total** | | **62** | **38** |

@@ -2,7 +2,7 @@
 
 import hashlib
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.models.entities import (
     Customer,
@@ -23,6 +23,10 @@ class ProfileRepository(BaseRepository[Profile]):
         stmt = select(Profile).where(Profile.email == email.strip().lower())
         return (await self.session.execute(stmt)).scalar_one_or_none()
 
+    async def first_with_role(self, role: str) -> Profile | None:
+        stmt = select(Profile).where(Profile.role == role).order_by(Profile.email).limit(1)
+        return (await self.session.execute(stmt)).scalar_one_or_none()
+
 
 class CustomerRepository(BaseRepository[Customer]):
     model = Customer
@@ -39,6 +43,29 @@ class CustomerRepository(BaseRepository[Customer]):
                 Customer.name.ilike(like) | Customer.company.ilike(like) | Customer.email.ilike(like)
             )
         return list((await self.session.execute(stmt)).scalars())
+
+
+    async def page(
+        self, query: str = "", *, limit: int = 20, offset: int = 0
+    ) -> tuple[list[Customer], int]:
+        """One page of customers (by name) plus the total that matches ``query``."""
+        conditions = []
+        if query.strip():
+            like = f"%{query.strip().lower()}%"
+            conditions.append(
+                Customer.name.ilike(like) | Customer.company.ilike(like) | Customer.email.ilike(like)
+            )
+        total = (
+            await self.session.execute(select(func.count()).select_from(Customer).where(*conditions))
+        ).scalar_one()
+        stmt = select(Customer).where(*conditions).order_by(Customer.name).limit(limit).offset(offset)
+        return list((await self.session.execute(stmt)).scalars()), int(total)
+
+    async def get_many(self, ids: list[str]) -> dict[str, Customer]:
+        if not ids:
+            return {}
+        stmt = select(Customer).where(Customer.id.in_(ids))
+        return {c.id: c for c in (await self.session.execute(stmt)).scalars()}
 
 
 class SubscriptionRepository(BaseRepository[Subscription]):
