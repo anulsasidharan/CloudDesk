@@ -142,3 +142,8 @@ class WorkflowEventOut(BaseModel):
     duration_ms: int | None = None
     payload: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime
+
+
+class RunAccepted(BaseModel):
+    workflow_id: str
+    status: str = "running"
