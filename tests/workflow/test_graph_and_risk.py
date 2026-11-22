@@ -5,7 +5,15 @@ import typing
 from app.schemas.common import Category, Severity
 from app.schemas.workflow import Classification, PlannedAction, ResolutionPlan, merge_usage
 
-from agents.graph import GRAPH_EDGES, GRAPH_NODES, ROUTE_TARGETS, build_graph, route_after_risk
+from agents.graph import (
+    APPROVAL_TARGETS,
+    GRAPH_EDGES,
+    GRAPH_NODES,
+    ROUTE_TARGETS,
+    build_graph,
+    route_after_approval,
+    route_after_risk,
+)
 from agents.risk import assess_risk, choose_route
 from agents.state import SupportState
 
@@ -17,7 +25,9 @@ EXPECTED_ORDER = [
     "troubleshooting",
     "resolution_planning",
     "risk_check",
+    "human_approval",
     "execute_resolution",
+    "escalation",
     "ticket_summary",
     "memory_update",
 ]
@@ -46,6 +56,12 @@ def test_graph_edges_form_one_chain_to_end():
     pairs = set(GRAPH_EDGES)
     assert ("understand_ticket", "classify_severity") in pairs
     assert ("risk_check", "execute_resolution") in pairs
+    assert ("risk_check", "human_approval") in pairs
+    assert ("risk_check", "escalation") in pairs
+    assert ("human_approval", "execute_resolution") in pairs
+    assert ("human_approval", "escalation") in pairs
+    assert ("execute_resolution", "ticket_summary") in pairs
+    assert ("escalation", "ticket_summary") in pairs
     assert ("memory_update", "__end__") in pairs
 
 
@@ -58,6 +74,22 @@ def test_every_route_has_a_target():
     assert set(ROUTE_TARGETS) == {"low", "approval", "escalation"}
     assert route_after_risk(SupportState(route="approval")) == "approval"
     assert route_after_risk(SupportState()) == "low"
+
+
+def test_routes_point_at_the_phase_11_nodes():
+    assert ROUTE_TARGETS == {
+        "low": "execute_resolution",
+        "approval": "human_approval",
+        "escalation": "escalation",
+    }
+    assert APPROVAL_TARGETS == {"approved": "execute_resolution", "rejected": "escalation"}
+
+
+def test_only_an_explicit_approval_runs_the_actions():
+    assert route_after_approval(SupportState(approval_status="approved")) == "approved"
+    for status in ("rejected", "pending", "not_required", ""):
+        assert route_after_approval(SupportState(approval_status=status)) == "rejected"
+    assert route_after_approval(SupportState()) == "rejected"
 
 
 def test_risk_low_for_plain_plan():

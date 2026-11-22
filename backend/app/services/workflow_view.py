@@ -11,7 +11,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.entities import WorkflowRun
-from app.repositories import ResolutionActionRepository, WorkflowRunRepository
+from app.repositories import ApprovalRepository, ResolutionActionRepository, WorkflowRunRepository
 from app.schemas.common import RunStatus
 
 STATUS_FOR_RUN = {
@@ -79,7 +79,14 @@ def _usage_out(usage: dict[str, Any] | None) -> dict[str, Any]:
     }
 
 
-def build_view(run: WorkflowRun, actions: list[Any]) -> dict[str, Any]:
+def _status(run: WorkflowRun, state: dict[str, Any]) -> str:
+    """The run status as the console names it. A finished run that filed an escalation is ``escalated``."""
+    if run.status == RunStatus.COMPLETED.value and state.get("escalation_id"):
+        return "escalated"
+    return STATUS_FOR_RUN.get(run.status, run.status)
+
+
+def build_view(run: WorkflowRun, actions: list[Any], approval: Any = None) -> dict[str, Any]:
     state = run.state or {}
     classification = state.get("classification")
     diagnosis = state.get("diagnosis")
@@ -90,7 +97,7 @@ def build_view(run: WorkflowRun, actions: list[Any]) -> dict[str, Any]:
     return {
         "workflow_id": run.id,
         "ticket_id": run.ticket_id,
-        "status": STATUS_FOR_RUN.get(run.status, run.status),
+        "status": _status(run, state),
         "current_node": run.current_node,
         "completed_nodes": state.get("completed_nodes", []),
         "classification": (
@@ -131,8 +138,8 @@ def build_view(run: WorkflowRun, actions: list[Any]) -> dict[str, Any]:
         "risk": state.get("risk"),
         "escalation_required": bool(state.get("escalation_required", False)),
         "escalation_reason": state.get("escalation_reason"),
-        "approval_status": state.get("approval_status", "not_required"),
-        "approval_request_id": None,
+        "approval_status": approval.status if approval else state.get("approval_status", "not_required"),
+        "approval_request_id": approval.id if approval else None,
         "final_response": state.get("final_response"),
         "ticket_summary": state.get("ticket_summary"),
         "errors": errors,
@@ -153,4 +160,5 @@ async def latest_view(session: AsyncSession, ticket_id: str) -> dict[str, Any] |
     if run is None:
         return None
     actions = await ResolutionActionRepository(session).list_for_workflow(run.id)
-    return build_view(run, actions)
+    approval = await ApprovalRepository(session).latest_for_workflow(run.id)
+    return build_view(run, actions, approval)
