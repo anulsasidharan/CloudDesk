@@ -31,7 +31,7 @@ services:
     environment:
       DEMO_MODE: "true"
       ENVIRONMENT: development
-      CORS_ORIGINS: http://localhost:3000
+      CORS_ORIGINS: http://localhost:3001
       JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me-0123456789abcdef}
       REDIS_URL: redis://redis:6379/0
       LLM_PROVIDER: ${LLM_PROVIDER:-fake}
@@ -64,7 +64,7 @@ services:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       backend:
         condition: service_healthy

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt 5 claude_cost_notools.txt</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 2rem auto; padding: 2rem; line-height: 1.7; color: #212529; }
+        h1 { font-size: 2rem; margin: 1.5rem 0 1rem; border-bottom: 2px solid #e9ecef; padding-bottom: 0.5rem; }
+        h2 { font-size: 1.5rem; margin: 1.25rem 0 0.75rem; }
+        h3 { font-size: 1.25rem; margin: 1rem 0 0.5rem; }
+        p { margin: 0.75rem 0; }
+        ul, ol { margin: 0.75rem 0; padding-left: 2rem; }
+        blockquote { border-left: 4px solid #667eea; padding-left: 1rem; margin: 1rem 0; color: #6c757d; }
+        code { background: #f8f9fa; padding: 0.2rem 0.4rem; border-radius: 3px; font-family: Monaco, Menlo, monospace; font-size: 0.9em; }
+        pre { background: #282c34; color: #abb2bf; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+        pre code { background: none; color: inherit; padding: 0; }
+        table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+        th, td { border: 1px solid #dee2e6; padding: 0.75rem; text-align: left; }
+        th { background: #f8f9fa; font-weight: 600; }
+        a { color: #667eea; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .diagram{position:relative;margin:1.5rem 0;text-align:center;padding:1rem 1rem 2.5rem;border:1px solid #e9ecef;border-radius:6px;background:#fff;overflow-x:auto;overflow-y:visible}.diagram svg{display:block;margin:0 auto;max-width:100%;height:auto;overflow:visible!important}.diagram svg foreignObject{overflow:visible!important}.diagram svg foreignObject{overflow:visible}.diagram-controls{position:absolute;top:.5rem;right:.5rem;display:flex;gap:.25rem;flex-wrap:wrap;justify-content:flex-end}.diagram-btn{padding:.25rem .5rem;font-size:.7rem;background:#fff;color:#667eea;border:1px solid #667eea;border-radius:3px;cursor:pointer}.diagram-btn:hover{background:#667eea;color:#fff}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000}.modal.active{display:block}.diagram-window{position:fixed;display:flex;flex-direction:column;background:#fff;border-radius:8px;box-shadow:0 16px 48px rgba(0,0,0,.35);border:1px solid #ced4da;min-width:420px;min-height:300px;z-index:1001;overflow:hidden}.diagram-window.maximized{top:0!important;left:0!important;width:100vw!important;height:100vh!important;border-radius:0}.diagram-window.maximized .resize-handle{display:none}.diagram-window-header{display:flex;align-items:center;justify-content:space-between;padding:.45rem .6rem;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;cursor:move;user-select:none}.diagram-window-title{font-size:.85rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.diagram-window-controls{display:flex;gap:.25rem}.win-btn{width:28px;height:24px;border:none;border-radius:4px;background:rgba(255,255,255,.2);color:#fff;cursor:pointer}.diagram-window-body{flex:1;display:flex;flex-direction:column;min-height:0;padding:.75rem;overflow:hidden}.modal-toolbar{display:flex;flex-wrap:wrap;gap:.5rem;padding-bottom:.75rem;border-bottom:1px solid #e9ecef;margin-bottom:.75rem}.modal-toolbar button{padding:.375rem .75rem;background:#667eea;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:.8rem}.zoom-level{font-size:.8rem;color:#6c757d;min-width:3.5rem;text-align:center}.modal-diagram-viewport{flex:1;min-height:120px;overflow:hidden;background:#fafafa;border:1px solid #e9ecef;border-radius:6px;cursor:grab}.modal-diagram-viewport.panning{cursor:grabbing}.modal-diagram-inner{display:flex;align-items:center;justify-content:center;min-height:100%;padding:1rem;transform-origin:center}.modal-hint{font-size:.75rem;color:#6c757d;margin-top:.5rem;text-align:center}.resize-handle{position:absolute;z-index:30}.resize-n{top:-3px;left:8px;right:8px;height:6px;cursor:ns-resize}.resize-s{bottom:-3px;left:8px;right:8px;height:6px;cursor:ns-resize}.resize-e{top:8px;right:-3px;bottom:8px;width:6px;cursor:ew-resize}.resize-w{top:8px;left:-3px;bottom:8px;width:6px;cursor:ew-resize}.resize-ne{top:-4px;right:-4px;width:12px;height:12px;cursor:nesw-resize}.resize-nw{top:-4px;left:-4px;width:12px;height:12px;cursor:nwse-resize}.resize-se{bottom:-4px;right:-4px;width:12px;height:12px;cursor:nwse-resize}.resize-sw{bottom:-4px;left:-4px;width:12px;height:12px;cursor:nesw-resize}
+    </style>
+</head>
+<body>
+<h1>Claude Code setup: .claude folder structure + prompt caching (no maxTurns, no tools variant)</h1>
+<p>Set up this repository's <code>.claude/</code> folder structure and make sure prompt caching is on.</p>
+<p>Scope: only <code>.claude/</code>, <code>.gitignore</code>, and <code>CLAUDE.md</code> (create it only if it is missing). Do not change application code, MCP servers, or <code>permissions</code>. Do not commit. Detect the OS and use the matching shell commands.</p>
+<h2>Phase 0: Preconditions</h2>
+<ol>
+<li>Run <code>claude --version</code>. <code>promptCacheTtl</code> needs v2.1.242 or later, and <code>omitClaudeMd</code> needs v2.1.271 or later. If the version is older, report it and skip only those fields.</li>
+<li>Find a working Python command: try <code>python</code>, <code>python3</code>, then <code>py -3</code>. Record the first one that works as PYTHON.</li>
+<li>Back up <code>.claude/</code>, and <code>CLAUDE.md</code> if it exists, to <code>.claude.bak-&lt;YYYYMMDD-HHMM&gt;/</code>.</li>
+<li>List every existing file under <code>.claude/</code>. Leave files that are not in this spec unchanged, and record their names. Replace spec files that differ (the backup keeps the old version).</li>
+</ol>
+<h2>Phase 1: Prompt caching check and enable</h2>
+<p>Caching is on by default. It is disabled only by these environment variables, set to any value:<br><code>DISABLE_PROMPT_CACHING</code>, <code>DISABLE_PROMPT_CACHING_HAIKU</code>, <code>DISABLE_PROMPT_CACHING_SONNET</code>, <code>DISABLE_PROMPT_CACHING_OPUS</code>, <code>DISABLE_PROMPT_CACHING_FABLE</code>.</p>
+<ol>
+<li>Search for these variables in every place they can come from. For each hit, record the source, line and value.<ul>
+<li>Project settings: <code>.claude/settings.json</code>, <code>.claude/settings.local.json</code></li>
+<li>User settings: <code>~/.claude/settings.json</code>, <code>~/.claude/settings.local.json</code></li>
+<li>Managed settings, read only:<ul>
+<li>Windows: <code>C:\Program Files\ClaudeCode\managed-settings.json</code></li>
+<li>macOS: <code>/Library/Application Support/ClaudeCode/managed-settings.json</code></li>
+<li>Linux: <code>/etc/claude-code/managed-settings.json</code></li>
+</ul>
+</li>
+<li>The current process environment</li>
+<li>Persistent environment:<ul>
+<li>Windows: User and Machine scope</li>
+<li>macOS/Linux: shell profiles (<code>~/.bashrc</code>, <code>~/.zshrc</code>, <code>~/.profile</code>, etc.)</li>
+</ul>
+</li>
+<li>VS Code user settings and <code>.vscode/settings.json</code></li>
+</ul>
+</li>
+<li>Also record these, but do not change them. They override the cache settings:<ul>
+<li><code>FORCE_PROMPT_CACHING_5M</code></li>
+<li><code>CLAUDE_CODE_PROMPT_CACHE_TTL</code></li>
+<li><code>CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL</code></li>
+<li><code>ANTHROPIC_BASE_URL</code></li>
+</ul>
+</li>
+<li>Live check: open the newest <code>.jsonl</code> under <code>~/.claude/projects/</code> for this project. Report <code>cache_read_input_tokens</code> and <code>cache_creation_input_tokens</code> from the last few assistant messages.</li>
+<li>Give a verdict: ENABLED or DISABLED. If DISABLED:<ul>
+<li>Remove each disabling key from the project, user and editor settings and from shell profile lines. Keep every other key and line unchanged.</li>
+<li>Remove User-scope Windows variables with <code>[Environment]::SetEnvironmentVariable('&lt;NAME&gt;', $null, 'User')</code>.</li>
+<li>Do NOT change Machine-scope variables or managed settings. Report them for an admin or IT to handle.</li>
+</ul>
+</li>
+<li>If <code>ANTHROPIC_BASE_URL</code> points to a gateway, warn that the gateway must forward <code>cache_control</code> markers and the <code>anthropic-beta</code> header unchanged.</li>
+</ol>
+<h2>Phase 2: Check the model pins</h2>
+<p>Probe each pinned model once, in the shell:</p>
+<pre><code>claude -p "Reply with OK" --model &lt;id&gt; --output-format json
+</code></pre>
+<p>Probe the values of <code>model</code>, <code>ANTHROPIC_DEFAULT_OPUS_MODEL</code>, <code>ANTHROPIC_DEFAULT_SONNET_MODEL</code> and <code>ANTHROPIC_DEFAULT_HAIKU_MODEL</code> in <code>.claude/settings.json</code>.</p>
+<ul>
+<li>If all of them answer: change nothing.</li>
+<li>If one fails with "not available on your ... deployment": probe the model ID that the error suggests. If that ID answers, use it in Phase 3 and report old → new. If it doesn't, stop and report which model the cloud admin must enable.</li>
+<li>Do not invent model IDs.</li>
+</ul>
+<h2>Phase 3: Merge <code>.claude/settings.json</code></h2>
+<p>Never delete, rename or reorder an existing key or array entry. Only add what is missing.</p>
+<p>The merged file must look like this:</p>
+<pre><code class="language-json">{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "model": "claude-sonnet-4-6",
+  "promptCacheTtl": "1h",
+  "subagentPromptCacheTtl": "5m",
+  "env": {
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-5-5",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-6",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4-5@20251001",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet",
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2"
+  },
+  "permissions": "&lt;existing allow and deny lists, exactly as they are&gt;",
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Bash",
+        "hooks": [ { "type": "command", "command": "bash .claude/hooks/pre-commit.sh" } ] },
+      { "matcher": "Agent|Task",
+        "hooks": [ { "type": "command", "command": "PYTHON \"$CLAUDE_PROJECT_DIR/.claude/hooks/agent_guard.py\"" } ] }
+    ]
+  }
+}
+</code></pre>
+<p>Rules:</p>
+<ul>
+<li><code>permissions</code>: copy the existing block exactly. Do not add, remove or reorder anything in it.</li>
+<li>Model values: keep the existing ones, unless Phase 2 replaced one.</li>
+<li><code>promptCacheTtl</code>, <code>subagentPromptCacheTtl</code>: add them if missing. If either exists with a different value, keep it and report it.</li>
+<li><code>env</code>: keep every existing key. Add <code>CLAUDE_CODE_SUBAGENT_MODEL</code> only if it is missing.</li>
+<li><code>hooks.PreToolUse</code>: keep the existing Bash entry unchanged. Append the <code>Agent|Task</code> entry only if it is not already there. Replace PYTHON with the command from Phase 0.</li>
+</ul>
+<p>Validate:</p>
+<ol>
+<li><code>python -m json.tool .claude/settings.json</code> must succeed.</li>
+<li>Diff the merged file against the backup. Every original line must still be present, apart from model pins replaced in Phase 2. Show the diff in the report.</li>
+</ol>
+<h2>Phase 4: Agent guard script</h2>
+<p>Create <code>.claude/hooks/agent_guard.py</code> with exactly this content. It logs every agent that Claude spawns. It also blocks an <code>opus</code>/<code>fable</code> model override on any agent other than the three Opus agents. If its input is unreadable, it does nothing.</p>
+<pre><code class="language-python">"""PreToolUse guard for the Agent tool: logs every spawn and blocks expensive
+model overrides outside the agents allowed to use them. Fails open on bad input."""
+import datetime, json, os, sys
+
+ALLOW_EXPENSIVE = {"architect", "planner", "opus-consultant"}
+EXPENSIVE = ("opus", "fable")
+
+raw = sys.stdin.read()
+try:
+    event = json.loads(raw)
+except ValueError:
+    sys.exit(0)
+
+tool_input = event.get("tool_input") or {}
+agent = str(tool_input.get("subagent_type") or tool_input.get("agent_type") or "").strip()
+model = str(tool_input.get("model") or "").strip().lower()
+blocked = bool(model) and any(m in model for m in EXPENSIVE) and agent not in ALLOW_EXPENSIVE
+
+root = os.environ.get("CLAUDE_PROJECT_DIR") or event.get("cwd") or "."
+try:
+    with open(os.path.join(root, ".claude", "agent-calls.jsonl"), "a", encoding="utf-8") as log:
+        log.write(json.dumps({
+            "ts": datetime.datetime.now().isoformat(timespec="seconds"),
+            "session": event.get("session_id"),
+            "agent": agent or None,
+            "model": model or None,
+            "blocked": blocked,
+            "tool_input_keys": sorted(tool_input.keys()),
+            "description": tool_input.get("description"),
+        }) + "\n")
+except OSError:
+    pass
+
+if blocked:
+    print(json.dumps({"hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": (
+            f"Model '{model}' is reserved for {', '.join(sorted(ALLOW_EXPENSIVE))}. "
+            f"Run '{agent or 'this agent'}' without a model override, "
+            "or use /consult-opus for a design question."),
+    }}))
+sys.exit(0)
+</code></pre>
+<p>Do not change any other file in <code>.claude/hooks/</code>.</p>
+<h2>Phase 5: Folder structure</h2>
+<p>Create exactly this structure. The <code>templates/</code> folder sits outside <code>agents/</code> because every file in <code>agents/</code> loads as a live agent.</p>
+<pre><code>CLAUDE.md                          core rules, under 150 lines (create only if missing)
+.claude/
+  settings.json                    merged in Phase 3
+  hooks/
+    pre-commit.sh                  existing, unchanged
+    agent_guard.py                 Phase 4
+  agents/
+    architect.md  planner.md  opus-consultant.md
+    implementer.md  test-engineer.md  code-reviewer.md
+    log-triage.md  Explore.md
+  skills/
+    plan/SKILL.md  implement/SKILL.md  test/SKILL.md  review/SKILL.md
+    consult-opus/SKILL.md  wait/SKILL.md  cost-report/SKILL.md
+  rules/
+    tests.md
+  templates/
+    agent-template.md
+</code></pre>
+<h3>5a. Agents (<code>.claude/agents/</code>)</h3>
+<p>Use the aliases <code>opus</code>, <code>sonnet</code> and <code>haiku</code>, not model IDs; <code>settings.json</code> maps them to IDs.<br>Do NOT set <code>maxTurns</code> or <code>tools</code> on any agent. This variant tests agents without a turn cap and without a tool list, so every agent inherits all tools from the main session, including <code>Agent</code>. If an existing agent file has <code>maxTurns</code> or <code>tools</code>, remove that line only and report it (file and old value).</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>model</th>
+<th>effort</th>
+<th>extra</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>architect.md</td>
+<td>opus</td>
+<td>high</td>
+<td></td>
+</tr>
+<tr>
+<td>planner.md</td>
+<td>opus</td>
+<td>high</td>
+<td></td>
+</tr>
+<tr>
+<td>opus-consultant.md</td>
+<td>opus</td>
+<td>high</td>
+<td></td>
+</tr>
+<tr>
+<td>implementer.md</td>
+<td>sonnet</td>
+<td>medium</td>
+<td></td>
+</tr>
+<tr>
+<td>test-engineer.md</td>
+<td>sonnet</td>
+<td>medium</td>
+<td></td>
+</tr>
+<tr>
+<td>code-reviewer.md</td>
+<td>sonnet</td>
+<td>high</td>
+<td></td>
+</tr>
+<tr>
+<td>log-triage.md</td>
+<td>haiku</td>
+<td>low</td>
+<td>omitClaudeMd: true</td>
+</tr>
+<tr>
+<td>Explore.md</td>
+<td>haiku</td>
+<td>low</td>
+<td>omitClaudeMd: true</td>
+</tr>
+</tbody></table>
+<p>Descriptions:</p>
+<ul>
+<li>architect: "Architecture decisions and ADRs for complex changes. Writes ADRs to docs/adr/. Use when a design choice needs recording."</li>
+<li>planner: "Writes implementation plans to docs/plans/ listing every affected file and the tests to write. Use proactively before any change touching more than one file."</li>
+<li>opus-consultant: "Answers one narrow design question in 300 words or fewer. Never edits files. Use only via /consult-opus."</li>
+<li>implementer: "Implements code changes from an approved plan in docs/plans/. Touches only the files the plan lists. Use proactively for code changes."</li>
+<li>test-engineer: "Writes and runs targeted tests named in the plan or the request. Use proactively for test work."</li>
+<li>code-reviewer: "Reviews the current uncommitted diff and ranks findings as blocker, major or minor with file:line. Use proactively after code changes."</li>
+<li>log-triage: "Digests long build, test or command logs into the failing items with file:line. Use proactively for any log over 200 lines."</li>
+<li>Explore: "Read-only search and mapping of unfamiliar code. Returns paths and line numbers, one line each."</li>
+</ul>
+<p>Every agent body ends with these lines, in this exact wording:<br>"Report every changed file, every open issue and every failing test in full. Do not shorten those lists. Keep everything else brief.<br>Stop as soon as the task is done. Do not start work the task did not ask for.<br>If a design question blocks you, stop and return the question in one sentence instead of guessing."</p>
+<p>Additional body rules:</p>
+<ul>
+<li>implementer, test-engineer: work only from the approved plan in docs/plans/ (or the files named in the request). Write the named tests first. Run only the targeted tests unless the plan says otherwise.</li>
+<li>code-reviewer: review <code>git diff</code> only. Skip generated files, lockfiles and snapshots.</li>
+<li>architect, planner: write only under docs/adr/ or docs/plans/. Never edit source code.</li>
+<li>opus-consultant: answer the single question asked, in 300 words or fewer. No edits.</li>
+<li>log-triage, Explore: output a list, one finding per line, no prose.</li>
+</ul>
+<h3>5b. Skills (<code>.claude/skills/&lt;name&gt;/SKILL.md</code>)</h3>
+<p>Do not set <code>model</code> or <code>effort</code> on any inline skill. On an inline skill, either one makes that turn re-read the whole conversation uncached.</p>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Frontmatter</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>plan</td>
+<td><code>context: fork</code>, <code>agent: planner</code>, <code>background: false</code></td>
+</tr>
+<tr>
+<td>implement</td>
+<td><code>context: fork</code>, <code>agent: implementer</code>, <code>background: false</code></td>
+</tr>
+<tr>
+<td>test</td>
+<td><code>context: fork</code>, <code>agent: test-engineer</code>, <code>background: false</code></td>
+</tr>
+<tr>
+<td>review</td>
+<td><code>context: fork</code>, <code>agent: code-reviewer</code>, <code>background: false</code></td>
+</tr>
+<tr>
+<td>consult-opus</td>
+<td><code>context: fork</code>, <code>agent: opus-consultant</code>, <code>background: false</code>, <code>disable-model-invocation: true</code></td>
+</tr>
+<tr>
+<td>cost-report</td>
+<td><code>context: fork</code>, <code>agent: general-purpose</code>, <code>model: haiku</code>, <code>background: false</code>, <code>disable-model-invocation: true</code>, <code>allowed-tools: Read, Grep, Glob, Bash</code></td>
+</tr>
+<tr>
+<td>wait</td>
+<td>inline, no <code>model</code>, no <code>effort</code>, <code>disable-model-invocation: true</code></td>
+</tr>
+</tbody></table>
+<p>Each skill has a one-line <code>description</code> and an <code>argument-hint</code>. A forked skill doesn't see the conversation, so its body must stand alone and pass <code>$ARGUMENTS</code> through.</p>
+<ul>
+<li>plan / implement / test / review / consult-opus: one short paragraph telling the agent its task is <code>$ARGUMENTS</code> and what to return.</li>
+<li>cost-report:<ul>
+<li>If <code>scripts/claude_usage/report.py</code> exists, run it and summarise its output. Otherwise, read the session transcript and its <code>subagents/</code> folder under <code>~/.claude/projects/&lt;project&gt;/</code>.</li>
+<li>In both cases, then read <code>.claude/agent-calls.jsonl</code> and list, per agent type: spawn count, models requested, blocked calls, and the <code>description</code> of every general-purpose spawn.</li>
+<li>Mention that <code>/usage</code> shows the main session's totals for free.</li>
+</ul>
+</li>
+<li>wait: "Do nothing until the background task named in $ARGUMENTS reports back. Then summarise its result in 3 lines or fewer."</li>
+</ul>
+<h3>5c. Rules (<code>.claude/rules/</code>)</h3>
+<ul>
+<li><code>tests.md</code>: set its <code>paths:</code> frontmatter to the repo's real test folders (check <code>package.json</code>, the jest config and the folder layout; for example <code>"src/**/*.test.ts"</code> or <code>"tests/**"</code>). Test conventions only.</li>
+<li>Do not create area rules. Suggest them in the report (name + <code>paths</code> glob) for the user to approve.</li>
+<li>Every rule file must have <code>paths:</code> frontmatter.</li>
+</ul>
+<h3>5d. Template (<code>.claude/templates/agent-template.md</code>)</h3>
+<p>Same frontmatter fields as the agents (<code>name</code>, <code>description</code>, <code>model</code>, <code>effort</code>), with placeholder values and no <code>maxTurns</code> or <code>tools</code>, plus the three closing lines. Add a comment: "If this agent uses opus, add its name to ALLOW_EXPENSIVE in .claude/hooks/agent_guard.py."</p>
+<h3>5e. CLAUDE.md</h3>
+<ul>
+<li>If it exists, do not edit it. Report:<ul>
+<li>its line count;</li>
+<li>content that changes between sessions (dates, versions, sprint notes, <code>@imports</code> of frequently edited files);</li>
+<li>sections that should move to a skill or a path-scoped rule.</li>
+</ul>
+</li>
+<li>If it is missing, create it, under 150 lines:<ul>
+<li>build/test commands, conventions, layout;</li>
+<li>a routing section: plan → /plan, routine change → /implement, tests → /test, diff → /review, design doubt → /consult-opus, long logs → log-triage;</li>
+<li>no dates and no volatile content.</li>
+</ul>
+</li>
+</ul>
+<h2>Phase 6: <code>.gitignore</code></h2>
+<p>Add these lines if they are missing. Do not remove existing lines:</p>
+<pre><code>/.claude/settings.local.json
+/.claude/agent-calls.jsonl
+/CLAUDE.local.md
+/.claude.bak-*/
+</code></pre>
+<h2>Phase 7: Verify</h2>
+<ol>
+<li><code>settings.json</code> parses, and the diff against the backup shows only additions (plus any pin replaced in Phase 2).</li>
+<li>Every agent has <code>model</code> and <code>effort</code>, and none sets <code>maxTurns</code> or <code>tools</code>. Opus appears only in architect, planner and opus-consultant.</li>
+<li>No inline skill has <code>model</code> or <code>effort</code>.</li>
+<li><code>.claude/agents/</code> contains only the 8 agents, plus any pre-existing ones recorded in Phase 0.</li>
+<li>No disabling cache variable remains in project or user settings.</li>
+<li>Guard self-test. Set <code>CLAUDE_PROJECT_DIR</code> to the repo root, then pipe each input into <code>PYTHON .claude/hooks/agent_guard.py</code>:<ul>
+<li><code>{"tool_input":{"subagent_type":"general-purpose","model":"opus"}}</code> → must print a <code>deny</code> decision.</li>
+<li><code>{"tool_input":{"subagent_type":"planner","model":"opus"}}</code> → must print nothing.</li>
+<li><code>not json</code> → must print nothing and exit 0.<br>Then delete <code>.claude/agent-calls.jsonl</code>.</li>
+</ul>
+</li>
+<li>Run <code>git status --short</code>.</li>
+</ol>
+<h2>Phase 8: Report, then stop</h2>
+<ul>
+<li>Caching verdict, live-check numbers, and a table of every source checked.</li>
+<li>Override variables found in Phase 1 step 2.</li>
+<li>Model probe results, and any pin replaced.</li>
+<li>The <code>settings.json</code> diff against the backup.</li>
+<li>Files created, replaced, kept, and backed up.</li>
+<li>Any <code>maxTurns</code> or <code>tools</code> lines removed from existing agent files (file and old value).</li>
+<li>Guard self-test results.</li>
+<li>Suggested area rules and CLAUDE.md findings.</li>
+<li>Deny rules that may block normal work. For example, <code>Read(./.env.*)</code> also matches <code>.env.example</code>, which Claude must read before editing it.</li>
+</ul>
+<p>Tell the user that settings apply only in a NEW session. Then, in PowerShell (not the chat):</p>
+<ol>
+<li>Start <code>claude</code>, send two short messages, and run <code>/usage</code>. The <code>Prompt cache (main)</code> line shows the hit ratio.</li>
+<li>Run <code>claude -p "hello" --output-format json</code> and check <code>usage.cache_creation.ephemeral_1h_input_tokens</code>. A value above 0 means the 1-hour TTL is active.</li>
+</ol>
+<p>Do nothing else.</p>
+
+<div id="diagram-modal" class="modal"><div id="diagram-window" class="diagram-window"><div class="diagram-window-header" id="diagram-window-header"><span class="diagram-window-title" id="diagram-window-title">Diagram</span><div class="diagram-window-controls"><button type="button" class="win-btn" id="btn-maximize" onclick="toggleMaximizeWindow()" title="Maximize">&#9744;</button><button type="button" class="win-btn" onclick="closeModal()" title="Close">&times;</button></div></div><div class="diagram-window-body"><div class="modal-toolbar"><button type="button" onclick="modalZoomIn()">Zoom in</button><button type="button" onclick="modalZoomOut()">Zoom out</button><button type="button" onclick="resetModalZoom()">Reset</button><span class="zoom-level" id="zoom-level">100%</span><button type="button" onclick="openPiPFromModal()">Picture in picture</button></div><div class="modal-diagram-viewport" id="modal-viewport"><div class="modal-diagram-inner" id="modal-diagram"></div></div><p class="modal-hint">Drag title to move • Drag edges to resize • Maximize for full screen</p></div><div class="resize-handle resize-n" data-dir="n"></div><div class="resize-handle resize-s" data-dir="s"></div><div class="resize-handle resize-e" data-dir="e"></div><div class="resize-handle resize-w" data-dir="w"></div><div class="resize-handle resize-ne" data-dir="ne"></div><div class="resize-handle resize-nw" data-dir="nw"></div><div class="resize-handle resize-se" data-dir="se"></div><div class="resize-handle resize-sw" data-dir="sw"></div></div></div>
+<script type="application/json" id="diagram-export-data">{}</script>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+var dataEl=document.getElementById("diagram-export-data");
+var diagramData={};
+try{diagramData=JSON.parse(dataEl.textContent||"{}")}catch(err){console.error("Diagram data parse error:",err)}
+document.querySelectorAll(".diagram").forEach(function(div){
+var n=div.dataset.name;if(n&&diagramData[n])div.dataset.svg=diagramData[n];
+});
+var modal=document.getElementById("diagram-modal");
+var win=document.getElementById("diagram-window");
+var winHeader=document.getElementById("diagram-window-header");
+var winTitle=document.getElementById("diagram-window-title");
+var btnMax=document.getElementById("btn-maximize");
+var modalDiagram=document.getElementById("modal-diagram");
+var viewport=document.getElementById("modal-viewport");
+var zoomLevel=document.getElementById("zoom-level");
+if(!modal||!win||!winHeader||!btnMax||!modalDiagram||!viewport||!zoomLevel){
+console.error("Diagram viewer elements missing");return;
+}
+var currentSVG=null,currentName="diagram",scale=1,panX=0,panY=0;
+var panning=false,sx,sy,ox,oy,pipWin=null;
+var MINW=420,MINH=300,winMax=false,winSaved=null,drag=null,resize=null;
+function clamp(l,t,w,h){
+w=Math.max(MINW,Math.min(w,innerWidth));h=Math.max(MINH,Math.min(h,innerHeight));
+l=Math.max(0,Math.min(l,innerWidth-w));t=Math.max(0,Math.min(t,innerHeight-h));
+return{l:l,t:t,w:w,h:h};
+}
+function applyWin(el,r){var c=clamp(r.l,r.t,r.w,r.h);
+el.style.left=c.l+"px";el.style.top=c.t+"px";el.style.width=c.w+"px";el.style.height=c.h+"px";
+el.style.right="auto";el.style.bottom="auto";}
+function winRect(el){var r=el.getBoundingClientRect();
+return{l:r.left,t:r.top,w:r.width,h:r.height};}
+function centerWin(el,w,h){
+w=Math.min(w||960,innerWidth-24);h=Math.min(h||680,innerHeight-24);
+applyWin(el,{l:(innerWidth-w)/2,t:(innerHeight-h)/2,w:w,h:h});}
+function setMax(on){
+winMax=on;
+if(on){winSaved=winRect(win);win.classList.add("maximized");
+btnMax.innerHTML="\u29C9";btnMax.title="Restore down";
+}else{win.classList.remove("maximized");if(winSaved)applyWin(win,winSaved);
+btnMax.innerHTML="\u25A1";btnMax.title="Maximize";}
+}
+window.toggleMaximizeWindow=function(){setMax(!winMax);};
+function getDiagram(el){return el&&el.closest?el.closest(".diagram"):el;}
+function applyZoom(){
+modalDiagram.style.transform="translate("+panX+"px,"+panY+"px) scale("+scale+")";
+zoomLevel.textContent=Math.round(scale*100)+"%";
+}
+function resetZoom(){scale=1;panX=0;panY=0;applyZoom();}
+window.modalZoomIn=function(){scale=Math.min(scale*1.25,5);applyZoom();};
+window.modalZoomOut=function(){scale=Math.max(scale/1.25,0.25);applyZoom();};
+window.resetModalZoom=resetZoom;
+window.zoomDiagram=function(el){
+var c=getDiagram(el);if(!c)return;
+var svg=c.dataset.svg;if(!svg)return;
+currentSVG=svg;currentName=c.dataset.name||"diagram";
+winTitle.textContent=currentName;
+modalDiagram.innerHTML=currentSVG;
+resetZoom();
+if(!winMax)centerWin(win);
+modal.classList.add("active");
+};
+window.closeModal=function(){
+modal.classList.remove("active");setMax(false);currentSVG=null;resetZoom();
+};
+window.openPiPFromModal=function(){
+if(currentSVG)openPiP({dataset:{svg:currentSVG,name:currentName}});
+};
+function esc(t){var d=document.createElement("div");d.textContent=t;return d.innerHTML;}
+async function openPiP(el){
+var c=getDiagram(el);if(!c||!c.dataset.svg)return;
+var t=c.dataset.name||"Diagram";
+if(!window.documentPictureInPicture)return;
+try{
+if(pipWin&&!pipWin.closed)pipWin.close();
+pipWin=await documentPictureInPicture.requestWindow({width:960,height:720});
+pipWin.document.body.style.margin="0";
+pipWin.document.body.innerHTML="<style>body{margin:0;padding:12px}svg{max-width:100%;height:auto}</style>"+
+"<h1 style=\"font:600 14px system-ui;margin:0 0 8px\">"+esc(t)+"</h1>"+c.dataset.svg;
+pipWin.addEventListener("pagehide",function(){pipWin=null;});
+}catch(e){console.warn("PiP failed",e);}
+}
+document.body.addEventListener("click",function(e){
+var btn=e.target.closest(".diagram-btn");if(!btn)return;
+var c=getDiagram(btn);if(!c)return;
+var a=btn.dataset.action;
+if(a==="zoom")window.zoomDiagram(c);
+else if(a==="pip")openPiP(c);
+else if(a==="svg"&&c.dataset.svg){
+var blob=new Blob([c.dataset.svg],{type:"image/svg+xml"});
+var u=URL.createObjectURL(blob);var aEl=document.createElement("a");
+aEl.href=u;aEl.download=(c.dataset.name||"diagram")+".svg";aEl.click();
+URL.revokeObjectURL(u);
+}
+});
+winHeader.addEventListener("mousedown",function(e){
+if(e.button!==0||e.target.closest(".win-btn"))return;
+if(winMax){setMax(false);return;}
+var r=winRect(win);
+drag={sx:e.clientX,sy:e.clientY,l:r.l,t:r.t,w:r.w,h:r.h};
+e.preventDefault();
+});
+winHeader.addEventListener("dblclick",function(e){
+if(!e.target.closest(".win-btn"))setMax(!winMax);
+});
+win.querySelectorAll(".resize-handle").forEach(function(handle){
+handle.addEventListener("mousedown",function(e){
+if(winMax)return;e.preventDefault();e.stopPropagation();
+var r=winRect(win);
+resize={dir:handle.dataset.dir,sx:e.clientX,sy:e.clientY,l:r.l,t:r.t,w:r.w,h:r.h};
+});
+});
+window.addEventListener("mousemove",function(e){
+if(drag&&!winMax){
+applyWin(win,{l:drag.l+(e.clientX-drag.sx),t:drag.t+(e.clientY-drag.sy),w:drag.w,h:drag.h});
+}
+if(resize&&!winMax){
+var dx=e.clientX-resize.sx,dy=e.clientY-resize.sy,dir=resize.dir;
+var l=resize.l,t=resize.t,w=resize.w,h=resize.h;
+if(dir.indexOf("e")>=0)w=Math.max(MINW,resize.w+dx);
+if(dir.indexOf("w")>=0){w=Math.max(MINW,resize.w-dx);l=resize.l+resize.w-w;}
+if(dir.indexOf("s")>=0)h=Math.max(MINH,resize.h+dy);
+if(dir.indexOf("n")>=0){h=Math.max(MINH,resize.h-dy);t=resize.t+resize.h-h;}
+applyWin(win,{l:l,t:t,w:w,h:h});
+}
+if(panning){panX=ox+(e.clientX-sx);panY=oy+(e.clientY-sy);applyZoom();}
+});
+window.addEventListener("mouseup",function(){
+drag=null;resize=null;panning=false;viewport.classList.remove("panning");
+});
+viewport.addEventListener("wheel",function(e){
+if(!modal.classList.contains("active"))return;
+e.preventDefault();
+scale=Math.min(Math.max(scale*(e.deltaY>0?0.9:1.1),0.25),5);
+applyZoom();
+},{passive:false});
+viewport.addEventListener("mousedown",function(e){
+if(e.button!==0)return;panning=true;
+sx=e.clientX;sy=e.clientY;ox=panX;oy=panY;
+viewport.classList.add("panning");
+});
+modal.addEventListener("click",function(e){if(e.target===modal)window.closeModal();});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")window.closeModal();});
+document.querySelectorAll(".diagram svg").forEach(function(svg){
+svg.style.cursor="zoom-in";
+svg.addEventListener("click",function(e){
+if(e.target.closest(".diagram-controls"))return;
+var d=svg.closest(".diagram");if(d)window.zoomDiagram(d);
+});
+});
+centerWin(win);
+});
+</script>
+</body>
+</html>
