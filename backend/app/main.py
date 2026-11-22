@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from agents.checkpointer import close_checkpointer
 from app import distribution_version
 from app.api.auth import router as auth_router
 from app.api.customers import router as customers_router
@@ -41,6 +42,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     try:
         yield
     finally:
+        await close_checkpointer()
         await dispose_engine()
         await close_redis()
 

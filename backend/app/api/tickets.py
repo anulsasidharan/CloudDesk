@@ -1,9 +1,9 @@
 """``/tickets`` routes. HTTP, auth and RBAC only; the work happens in ``ticket_service``.
 
-``/run`` and ``/workflow`` arrive with the workflow in Phase 10.
+``/run`` starts the workflow in the background; ``/workflow`` and ``/events`` report on it.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
@@ -14,6 +14,7 @@ from app.schemas.tickets import (
     EscalateRequest,
     InfoRequest,
     ReplyCreate,
+    RunAccepted,
     TicketCreate,
     TicketDetail,
     TicketMessageOut,
@@ -22,7 +23,7 @@ from app.schemas.tickets import (
     TicketPatch,
     WorkflowEventOut,
 )
-from app.services import ticket_service
+from app.services import ticket_service, workflow_service
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 VIEWER = Depends(require_role(Role.VIEWER))
@@ -93,6 +94,37 @@ async def patch_ticket(
         raise _not_found() from exc
     except ticket_service.ProfileNotFoundError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Assignee not found") from exc
+
+
+@router.post("/{ticket_id}/run", response_model=RunAccepted, status_code=status.HTTP_202_ACCEPTED)
+async def run_workflow(
+    ticket_id: str,
+    background: BackgroundTasks,
+    _: AuthUser = AGENT,
+    session: AsyncSession = Depends(get_session),
+) -> RunAccepted:
+    try:
+        run = await workflow_service.create_run(session, ticket_id)
+    except ticket_service.TicketNotFoundError as exc:
+        raise _not_found() from exc
+    except workflow_service.WorkflowConflictError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    background.add_task(workflow_service.start_workflow, run.id)
+    return RunAccepted(workflow_id=run.id, status="running")
+
+
+@router.get("/{ticket_id}/workflow")
+async def get_workflow(
+    ticket_id: str,
+    _: AuthUser = VIEWER,
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    try:
+        return await workflow_service.get_workflow(session, ticket_id)
+    except ticket_service.TicketNotFoundError as exc:
+        raise _not_found() from exc
+    except workflow_service.NoWorkflowError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No workflow has run for this ticket") from exc
 
 
 @router.get("/{ticket_id}/events", response_model=list[WorkflowEventOut])

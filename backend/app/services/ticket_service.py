@@ -37,6 +37,7 @@ from app.schemas.tickets import (
     TicketSummary,
     WorkflowEventOut,
 )
+from app.services import workflow_view
 
 ESCALATION_TEAM = "support_leads"
 HISTORY_LIMIT = 10
@@ -96,7 +97,7 @@ def _message_out(message: TicketMessage) -> TicketMessageOut:
     )
 
 
-async def _load(session: AsyncSession, ticket_ref: str) -> Ticket:
+async def find_ticket(session: AsyncSession, ticket_ref: str) -> Ticket:
     """Find a ticket by id, or by number such as ``CD-1001``."""
     repo = TicketRepository(session)
     ticket = await repo.get(ticket_ref) or await repo.get_by_number(ticket_ref)
@@ -166,7 +167,7 @@ async def create_ticket(session: AsyncSession, data: TicketCreate) -> TicketOut:
 
 
 async def get_ticket(session: AsyncSession, ticket_ref: str) -> TicketDetail:
-    ticket = await _load(session, ticket_ref)
+    ticket = await find_ticket(session, ticket_ref)
     base = await _out(session, ticket)
     customer = await CustomerRepository(session).get(ticket.customer_id)
     if customer is None:  # FK makes this unreachable; keep the type checker honest
@@ -186,7 +187,7 @@ async def get_ticket(session: AsyncSession, ticket_ref: str) -> TicketDetail:
         subscription=SubscriptionOut.model_validate(subscription) if subscription else None,
         workspaces=[WorkspaceOut.model_validate(w) for w in workspaces],
         history=await summaries(session, history),
-        workflow=None,
+        workflow=await workflow_view.latest_view(session, ticket.id),
         resolution_actions=[
             ResolutionActionOut(
                 id=a.id,
@@ -206,7 +207,7 @@ async def get_ticket(session: AsyncSession, ticket_ref: str) -> TicketDetail:
 
 
 async def update_ticket(session: AsyncSession, ticket_ref: str, patch: TicketPatch) -> TicketOut:
-    ticket = await _load(session, ticket_ref)
+    ticket = await find_ticket(session, ticket_ref)
     sent = patch.model_fields_set
     if "assigned_to" in sent:
         if (
@@ -226,7 +227,7 @@ async def update_ticket(session: AsyncSession, ticket_ref: str, patch: TicketPat
 async def reply(
     session: AsyncSession, ticket_ref: str, data: ReplyCreate, caller: AuthUser
 ) -> TicketMessageOut:
-    ticket = await _load(session, ticket_ref)
+    ticket = await find_ticket(session, ticket_ref)
     if not data.internal and ticket.status == TicketStatus.CLOSED.value:
         raise TicketClosedError(ticket.number)
     message = await TicketMessageRepository(session).add(
@@ -244,7 +245,7 @@ async def reply(
 async def request_info(
     session: AsyncSession, ticket_ref: str, data: InfoRequest, caller: AuthUser
 ) -> TicketMessageOut:
-    ticket = await _load(session, ticket_ref)
+    ticket = await find_ticket(session, ticket_ref)
     if ticket.status == TicketStatus.CLOSED.value:
         raise TicketClosedError(ticket.number)
     body = "To help us resolve this, please tell us:\n" + "\n".join(
@@ -261,7 +262,7 @@ async def request_info(
 
 
 async def escalate(session: AsyncSession, ticket_ref: str, data: EscalateRequest) -> EscalationOut:
-    ticket = await _load(session, ticket_ref)
+    ticket = await find_ticket(session, ticket_ref)
     severity = Severity.CRITICAL if data.priority == "urgent" else Severity.HIGH
     escalation = await EscalationRepository(session).add(
         ticket_id=ticket.id,
@@ -275,7 +276,7 @@ async def escalate(session: AsyncSession, ticket_ref: str, data: EscalateRequest
 
 
 async def list_events(session: AsyncSession, ticket_ref: str) -> list[WorkflowEventOut]:
-    ticket = await _load(session, ticket_ref)
+    ticket = await find_ticket(session, ticket_ref)
     events = await WorkflowEventRepository(session).list_for_ticket(ticket.id)
     return [
         WorkflowEventOut(
