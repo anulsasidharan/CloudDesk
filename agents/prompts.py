@@ -45,3 +45,47 @@ def wrap_untrusted(text: str, *, source: str = "ticket") -> str:
         f"{body}\n"
         f"</{UNTRUSTED_TAG}>"
     )
+
+
+# --------------------------------------------------------------------------------------------
+# Specialist prompts (Phase 9). Each starts from SECURITY_PREAMBLE; ticket text is always wrapped.
+# --------------------------------------------------------------------------------------------
+
+CLASSIFY_PROMPT = (
+    "Task: classify the ticket into exactly one category (login_issue, billing, api_failure, "
+    "workspace_permissions, storage_quota, integration, feature_request, account, security, "
+    "other) and write a one-line summary of the problem. Do not include names or emails."
+)
+SEVERITY_PROMPT = (
+    "Task: rate the severity (low, medium, high, critical) and give a one-sentence reason. "
+    "Consider how many users are blocked, data or money at risk, and any deadline."
+)
+SUMMARY_PROMPT = (
+    "Task: write a two-sentence summary of what happened on this ticket and how it was handled. "
+    "No customer contact details, no secrets."
+)
+DIAGNOSIS_PROMPT = (
+    "Task: list the probable causes (most likely first) and numbered troubleshooting steps a "
+    "support agent can follow. Use only the evidence and facts provided."
+)
+REPLY_PROMPT = (
+    "Task: draft a short, polite customer reply that includes the troubleshooting steps, plus a "
+    "one-line plan summary and internal notes. Cite knowledge articles by title only. Never include "
+    "URLs, internal paths, secrets or other customers' data. Do not promise refunds; a person "
+    "approves them."
+)
+ESCALATION_PROMPT = (
+    "Task: decide whether a person on another team must take over this ticket. Escalate only "
+    "when you are sure; give the team, a one-sentence reason and your confidence from 0 to 1."
+)
+
+
+def build_system(task: str) -> str:
+    """System message for a specialist: the shared security preamble plus its one task."""
+    return f"{SECURITY_PREAMBLE}\n{task}"
+
+
+def build_user(subject: str, body: str, facts: str = "") -> str:
+    """User message: our own facts first, then the customer's words as untrusted data."""
+    ticket = wrap_untrusted(f"Subject: {subject}\n\n{body}", source="ticket")
+    return f"{facts.strip()}\n\n{ticket}" if facts.strip() else ticket
