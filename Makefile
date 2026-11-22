@@ -27,3 +27,19 @@ test:
 
 lint:
 	uv run ruff check .
+
+# ---- Phase 14: evaluation and delivery ----
+.PHONY: eval smoke terraform-validate compose-check
+
+eval:
+	uv run pytest tests/evaluation -q
+
+compose-check:
+	docker compose config -q
+
+terraform-validate:
+	@for c in aws azure gcp; do terraform -chdir=deployment/$$c init -backend=false && terraform -chdir=deployment/$$c validate || exit 1; done
+
+BASE_URL ?= http://localhost:8000
+smoke:
+	BASE_URL=$(BASE_URL) bash deployment/scripts/smoke_test.sh

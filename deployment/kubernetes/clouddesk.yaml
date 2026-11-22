@@ -1,0 +1,25 @@
+# Minimal Kubernetes reference (not applied anywhere). Image tags must be git SHAs.
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: clouddesk-backend }
+spec:
+  replicas: 1 # SQLite demo store: keep 1 until DATABASE_URL points at Postgres
+  selector: { matchLabels: { app: clouddesk-backend } }
+  template:
+    metadata: { labels: { app: clouddesk-backend } }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 10001 }
+      containers:
+        - name: backend
+          image: REGISTRY/clouddesk-backend:GIT_SHA
+          ports: [{ containerPort: 8000 }]
+          envFrom: [{ secretRef: { name: clouddesk-secrets } }]
+          livenessProbe: { httpGet: { path: /health/live, port: 8000 } }
+          readinessProbe: { httpGet: { path: /health/ready, port: 8000 } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: clouddesk-backend }
+spec:
+  selector: { app: clouddesk-backend }
+  ports: [{ port: 8000, targetPort: 8000 }]

@@ -1,0 +1,12 @@
+name: docker-build
+on:
+  pull_request:
+    paths: ["backend/**", "frontend/**", "agents/**", "rag/**", "docker-compose.yml"]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config -q
+      - run: docker build -f backend/Dockerfile -t clouddesk-backend:${{ github.sha }} .
+      - run: docker build -f frontend/Dockerfile -t clouddesk-frontend:${{ github.sha }} frontend

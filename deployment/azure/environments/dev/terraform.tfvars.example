@@ -1,0 +1,4 @@
+environment   = "dev"
+name_prefix   = "clouddesk-dev"
+backend_count = 1
+location      = "eastus"
