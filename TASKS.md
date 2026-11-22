@@ -178,10 +178,10 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P12-1 · Next.js app shell and navigation | `feature/frontend-app-shell` | Pending ❌ |
-| P12-2 · Typed API client | `feature/frontend-api-client` | Pending ❌ |
-| P12-3 · Login and role-aware layout | `feature/frontend-auth-layout` | Pending ❌ |
-| P12-4 · Read-only list pages | `feature/frontend-read-pages` | Pending ❌ |
+| P12-1 · Next.js app shell and navigation | `feature/frontend-app-shell` | Completed ✅ |
+| P12-2 · Typed API client | `feature/frontend-api-client` | Completed ✅ |
+| P12-3 · Login and role-aware layout | `feature/frontend-auth-layout` | Completed ✅ |
+| P12-4 · Read-only list pages | `feature/frontend-read-pages` | Completed ✅ |
 
 ---
 
@@ -270,7 +270,7 @@ Phases 4, 5, 6, and 7 start together once Phase 2 (and Phase 3, for Phase 4 only
 | 9 | Specialist agents | 8 | 8 |
 | 10 | Workflow graph and trace | 6 | 0 |
 | 11 | Approval and escalation | 5 | 0 |
-| 12 | Console shell | 4 | 0 |
+| 12 | Console shell | 4 | 4 |
 | 13 | Ticket workflow screen | 4 | 0 |
 | 14 | Evaluation and delivery | 5 | 0 |
 | **Total** | | **62** | **38** |
