@@ -129,14 +129,14 @@ Sub-tasks in the same phase that do not share files can be open at the same time
 
 | Task | Branch | Status |
 |------|--------|--------|
-| P9-1 · Workflow schemas and fake LLM | `feature/workflow-schemas-fake-llm` | Pending ❌ |
-| P9-2 · Supervisor agent | `feature/agent-supervisor` | Pending ❌ |
-| P9-3 · Customer agent | `feature/agent-customer` | Pending ❌ |
-| P9-4 · Knowledge agent | `feature/agent-knowledge` | Pending ❌ |
-| P9-5 · Troubleshooting agent | `feature/agent-troubleshooting` | Pending ❌ |
-| P9-6 · Resolution agent | `feature/agent-resolution` | Pending ❌ |
-| P9-7 · Escalation agent | `feature/agent-escalation` | Pending ❌ |
-| P9-8 · Eval case dataset | `feature/agent-eval-cases` | Pending ❌ |
+| P9-1 · Workflow schemas and fake LLM | `feature/workflow-schemas-fake-llm` | Completed ✅ |
+| P9-2 · Supervisor agent | `feature/agent-supervisor` | Completed ✅ |
+| P9-3 · Customer agent | `feature/agent-customer` | Completed ✅ |
+| P9-4 · Knowledge agent | `feature/agent-knowledge` | Completed ✅ |
+| P9-5 · Troubleshooting agent | `feature/agent-troubleshooting` | Completed ✅ |
+| P9-6 · Resolution agent | `feature/agent-resolution` | Completed ✅ |
+| P9-7 · Escalation agent | `feature/agent-escalation` | Completed ✅ |
+| P9-8 · Eval case dataset | `feature/agent-eval-cases` | Completed ✅ |
 
 ---
 
@@ -264,13 +264,13 @@ Phases 4, 5, 6, and 7 start together once Phase 2 (and Phase 3, for Phase 4 only
 | 3 | Identity and request guards | 4 | 4 |
 | 4 | Support API | 3 | 3 |
 | 5 | Knowledge pipeline | 4 | 4 |
-| 6 | Tools and mocks | 4 | 0 |
-| 7 | Rules and guardrails | 4 | 0 |
-| 8 | Memory | 3 | 0 |
-| 9 | Specialist agents | 8 | 0 |
+| 6 | Tools and mocks | 4 | 4 |
+| 7 | Rules and guardrails | 4 | 4 |
+| 8 | Memory | 3 | 3 |
+| 9 | Specialist agents | 8 | 8 |
 | 10 | Workflow graph and trace | 6 | 0 |
 | 11 | Approval and escalation | 5 | 0 |
 | 12 | Console shell | 4 | 0 |
 | 13 | Ticket workflow screen | 4 | 0 |
 | 14 | Evaluation and delivery | 5 | 0 |
-| **Total** | | **62** | **19** |
+| **Total** | | **62** | **38** |
