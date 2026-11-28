@@ -13,10 +13,34 @@ provider "google" {
   region  = var.region
 }
 
+data "google_project" "current" {
+  project_id = var.project_id
+}
+
+resource "google_kms_key_ring" "main" {
+  name     = "${var.name_prefix}-keyring"
+  location = var.region
+}
+
+resource "google_kms_crypto_key" "registry" {
+  name            = "${var.name_prefix}-registry"
+  key_ring        = google_kms_key_ring.main.id
+  rotation_period = "7776000s" # 90 days
+}
+
+# Artifact Registry service agent must be able to use the key.
+resource "google_kms_crypto_key_iam_member" "registry" {
+  crypto_key_id = google_kms_crypto_key.registry.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-artifactregistry.iam.gserviceaccount.com"
+}
+
 resource "google_artifact_registry_repository" "images" {
   repository_id = "${var.name_prefix}-images"
   format        = "DOCKER"
   location      = var.region
+  kms_key_name  = google_kms_crypto_key.registry.id
+  depends_on    = [google_kms_crypto_key_iam_member.registry]
 }
 
 resource "google_secret_manager_secret" "jwt" {
