@@ -26,6 +26,10 @@ resource "google_kms_crypto_key" "registry" {
   name            = "${var.name_prefix}-registry"
   key_ring        = google_kms_key_ring.main.id
   rotation_period = "7776000s" # 90 days
+
+  lifecycle {
+    prevent_destroy = true # CKV_GCP_82: destroying the key would make registry images unreadable
+  }
 }
 
 # Artifact Registry service agent must be able to use the key.
